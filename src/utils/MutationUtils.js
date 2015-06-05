@@ -2,9 +2,10 @@
  * Utility for creating a mutation object
  * Created by Martin Koster on 2/16/15.
  */
-var _ = require('lodash');
+var _ = require('lodash'),
+    escodegen = require('escodegen');
 
-var createMutation = function (astNode, endOffset, parentMutationId, replacement) {
+var createMutation = function (astNode, endOffset, original, replacement) {
     replacement = replacement || '';
     return {
         range: astNode.range,
@@ -12,42 +13,32 @@ var createMutation = function (astNode, endOffset, parentMutationId, replacement
         end: endOffset,
         line: astNode.loc.start.line,
         col: astNode.loc.start.column,
-        parentMutationId: parentMutationId,
-        mutationId: _.uniqueId(),
+        original: _.isObject(original) ? escodegen.generate(original) : original,
         replacement: replacement
     };
 };
 
-var createAstArrayElementDeletionMutation = function (astArray, element, elementIndex, parentMutationId) {
+var createAstArrayElementDeletionMutation = function (astArray, elementIndex) {
     var endOffset = (elementIndex === astArray.length - 1) ? // is last element ?
-        element.range[1] :                     // handle last element
+        astArray[elementIndex].range[1] :                     // handle last element
         astArray[elementIndex + 1].range[0];   // care for commas by extending to start of next element
-    return createMutation(element, endOffset, parentMutationId);
+    return createMutation(astArray[elementIndex], endOffset, astArray[elementIndex]);
 };
 
-var createOperatorMutation = function (astNode, parentMutationId, replacement) {
-    return {
-        range: astNode.range,
+var createOperatorMutation = function (astNode, original, replacement) {
+    var mutation = createUnaryOperatorMutation(astNode, astNode.right.range[0], original, replacement);
+    return _.merge(mutation, {
         begin: astNode.left.range[1],
-        end: astNode.right.range[0],
-        line: astNode.left.loc.end.line,
-        col: astNode.left.loc.end.column,
-        mutationId: _.uniqueId(),
-        parentMutationId: parentMutationId,
-        replacement: replacement
-    };
-};
-var createUnaryOperatorMutation = function (astNode, parentMutationId, replacement) {
-    return {
-        range: astNode.range,
-        begin: astNode.range[0],
-        end: astNode.range[0]+1,
         line: astNode.loc.end.line,
-        col: astNode.loc.end.column,
-        mutationId: _.uniqueId(),
-        parentMutationId: parentMutationId,
-        replacement: replacement
-    };
+        col: astNode.loc.end.column
+    });
+};
+var createUnaryOperatorMutation = function (astNode, original, replacement) {
+    var mutation = createMutation(astNode, astNode.range[0]+1, original, replacement);
+    return _.merge(mutation, {
+        line: astNode.loc.end.line,
+        col: astNode.loc.end.column
+    });
 };
 
 module.exports.createMutation = createMutation;

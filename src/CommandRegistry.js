@@ -2,52 +2,113 @@
  * This registry contains all the possible mutation commands and the predicates for which they a command will be selected.
  * It will select and return a command based on the given syntax tree node.
  *
- * To add new commands to the application simply create a new Mutation command based on MutationBaseCommand and add it to the registry together with an appropriate predicate.
+ * To add new commands to the application simply create a new Mutation command based on BaseMutationOperator and add it to the registry together with an appropriate predicate.
  *
  * Created by Martin Koster on 2/20/15.
  */
-var _ = require('lodash'),
-    ComparisonOperatorCommand = require('mutationCommand/ComparisonOperatorCommand'),
-    ArithmeticOperatorCommand = require('mutationCommand/ArithmeticOperatorCommand'),
-    ArrayExpressionCommand = require('mutationCommand/ArrayExpressionCommand'),
-    BlockStatementCommand = require('mutationCommand/BlockStatementCommand'),
-    ObjectCommand = require('mutationCommand/ObjectCommand'),
-    LiteralCommand = require('mutationCommand/LiteralCommand'),
-    UnaryExpressionCommand = require('mutationCommand/UnaryExpressionCommand'),
-    LogicalExpressionCommand = require('mutationCommand/LogicalExpressionCommand'),
-    BaseCommand = require('mutationCommand/BaseCommand'),
-    CallExpressionCommand = require('mutationCommand/CallExpressionCommand'),
-    UpdateExpressionCommand = require('mutationCommand/UpdateExpressionCommand'),
-    IterationCommand = require('mutationCommand/IterationCommand'),
-    ForLoopCommand = require('mutationCommand/ForLoopCommand'),
-    AssignmentExpressionCommand = require('mutationCommand/AssignmentExpressionCommand'),
-    ChildNodeFinder = require('nodeFinder/ChildNodeFinder');
-
-/*
- * Add a new command to this registry together with its predicate. It will automatically be included in the system
- */
-var registry  = [
-    {predicate: function(node) {return node && node.body && _.isArray(node.body);}, Commands: [BlockStatementCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && (node.type === 'WhileStatement' || node.type === 'DoWhileStatement');}, Commands: [IterationCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'ForStatement';}, Commands: [ForLoopCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'AssignmentExpression';}, Commands: [AssignmentExpressionCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'CallExpression';}, Commands: [CallExpressionCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'ObjectExpression';}, Commands: [ObjectCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'ArrayExpression';}, Commands: [ArrayExpressionCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'BinaryExpression' && isArithmeticExpression(node);}, Commands: [ArithmeticOperatorCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'BinaryExpression' && !isArithmeticExpression(node);}, Commands: [ComparisonOperatorCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'UpdateExpression';}, Commands: [UpdateExpressionCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'Literal';}, Commands: [LiteralCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'UnaryExpression';}, Commands: [UnaryExpressionCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return node && node.type === 'LogicalExpression';}, Commands: [LogicalExpressionCommand], nodeFinder: ChildNodeFinder},
-    {predicate: function(node) {return _.isObject(node);}, Commands: [BaseCommand], nodeFinder: ChildNodeFinder}
-];
-
-function isArithmeticExpression(node) {
-    return _.indexOf(['+', '-', '*', '/', '%'], node.operator) > -1;
-}
-
 (function CommandRegistry(exports) {
+    'use strict';
+
+    var _ = require('lodash'),
+        ComparisonOperatorMO = require('mutationOperator/ComparisonOperatorMO'),
+        EqualityOperatorMO = require('mutationOperator/EqualityOperatorMO'),
+        ArithmeticOperatorMO = require('mutationOperator/ArithmeticOperatorMO'),
+        ArrayExpressionMO = require('mutationOperator/ArrayExpressionMO'),
+        BlockStatementMO = require('mutationOperator/BlockStatementMO'),
+        ObjectMO = require('mutationOperator/ObjectMO'),
+        LiteralMO = require('mutationOperator/LiteralMO'),
+        UnaryExpressionMO = require('mutationOperator/UnaryExpressionMO'),
+        LogicalExpressionMO = require('mutationOperator/LogicalExpressionMO'),
+        CallExpressionMO = require('mutationOperator/CallExpressionMO'),
+        UpdateExpressionMO = require('mutationOperator/UpdateExpressionMO'),
+        ArrayCNF = require('childNodeFinder/ArrayCNF'),
+        AssignmentCNF = require('childNodeFinder/AssignmentCNF'),
+        CallExpressionCNF = require('childNodeFinder/CallExpressionCNF'),
+        ChildNodeFinder = require('childNodeFinder/ChildNodeFinder'),
+        ForLoopCNF = require('childNodeFinder/ForLoopCNF'),
+        IterationCNF = require('childNodeFinder/IterationCNF'),
+        LeftRightCNF = require('childNodeFinder/LeftRightCNF'),
+        PropertyCNF = require('childNodeFinder/PropertyCNF');
+
+    /*
+     * Add a new command to this registry together with its predicate. It will automatically be included in the system
+     */
+    var registry  = [
+        {// block statement: { var i; var j; }
+            predicate: function (node) {return node && node.body && _.isArray(node.body);},
+            MutationOperators: [BlockStatementMO],
+            childNodeFinder: ArrayCNF
+        },
+        {// while / do ... while loop
+            predicate: function (node) {return node && (node.type === 'WhileStatement' || node.type === 'DoWhileStatement');},
+            MutationOperators: [],
+            childNodeFinder: IterationCNF
+        },
+        {// for loop
+            predicate: function (node) {return node && node.type === 'ForStatement';},
+            MutationOperators: [],
+            childNodeFinder: ForLoopCNF
+        },
+        {// assignment expression: a = 'apple';
+            predicate: function (node) {return node && node.type === 'AssignmentExpression';},
+            MutationOperators: [],
+            childNodeFinder: AssignmentCNF
+        },
+        {// call expression: callingSomeFunction(param1, param2);
+            predicate: function (node) {return node && node.type === 'CallExpression';},
+            MutationOperators: [CallExpressionMO],
+            childNodeFinder: CallExpressionCNF
+        },
+        {// object expression: {item1: 'item1'}
+            predicate: function (node) {return node && node.type === 'ObjectExpression';},
+            MutationOperators: [ObjectMO],
+            childNodeFinder: PropertyCNF
+        },
+        {// array expression ['a', 'b', 'c']
+            predicate: function (node) {return node && node.type === 'ArrayExpression';},
+            MutationOperators: [ArrayExpressionMO],
+            childNodeFinder: ArrayCNF
+        },
+        {// arithmetic expression
+            predicate: function (node) {return node && node.type === 'BinaryExpression' && isArithmeticExpression(node);},
+            MutationOperators: [ArithmeticOperatorMO],
+            childNodeFinder: LeftRightCNF
+        },
+        {// comparison expression
+            predicate: function (node) {return node && node.type === 'BinaryExpression' && !isArithmeticExpression(node);},
+            MutationOperators: [ComparisonOperatorMO, EqualityOperatorMO],
+            childNodeFinder: LeftRightCNF
+        },
+        {// update expression: i++
+            predicate: function (node) {return node && node.type === 'UpdateExpression';},
+            MutationOperators: [UpdateExpressionMO],
+            childNodeFinder: null
+        },
+        {// literal
+            predicate: function (node) {return node && node.type === 'Literal';},
+            MutationOperators: [LiteralMO],
+            childNodeFinder: null
+        },
+        {// unary expression: '-' as in -x
+            predicate: function (node) {return node && node.type === 'UnaryExpression';},
+            MutationOperators: [UnaryExpressionMO],
+            childNodeFinder: null
+        },
+        {// logical expression: a && b
+            predicate: function (node) {return node && node.type === 'LogicalExpression';},
+            MutationOperators: [LogicalExpressionMO],
+            childNodeFinder: LeftRightCNF
+        },
+        {// default for all AST node objects
+            predicate: function (node) {return _.isObject(node);},
+            MutationOperators: [],
+            childNodeFinder: ChildNodeFinder
+        }
+    ];
+
+    function isArithmeticExpression(node) {
+        return _.indexOf(['+', '-', '*', '/', '%'], node.operator) > -1;
+    }
 
     /**
      * Selectes a command based on the given Abstract Syntax Tree node.
@@ -75,9 +136,9 @@ function isArithmeticExpression(node) {
      */
     function getDefaultExcludes() {
         var excludes = {};
-        _.forEach(_.pluck(registry, 'Command'), function(Command){
-            if(Command.code) {
-                excludes[Command.code] = !!Command.exclude;
+        _.forEach(_.uniq(_.flatten(_.pluck(registry, 'MutationOperators'), true)), function(operator){
+            if(operator.code) {
+                excludes[operator.code] = !!operator.exclude;
             }
         });
         return excludes;

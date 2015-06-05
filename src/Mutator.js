@@ -9,11 +9,10 @@
 var esprima = require('esprima'),
     escodegen = require('escodegen'),
     _ = require('lodash'),
-    Utils = require('../utils/MutationUtils'),
-    MutateBaseCommand = require('../mutationCommands/MutateBaseCommand'),
+    BaseMutationOperator = require('../mutationOperator/BaseMutationOperator'),
     ExclusionUtils = require('../utils/ExclusionUtils'),
-    CommandRegistry = require('../mutationCommands/CommandRegistry'),
-    CommandExecutor = require('../mutationCommands/CommandExecutor');
+    CommandRegistry = require('./CommandRegistry'),
+    CommandExecutor = require('./CommandExecutor');
 
 function Mutator(src, options) {
     var ast = esprima.parse(src, _.merge({range: true, loc: true, tokens: true, comment: true}, options));
@@ -38,7 +37,7 @@ Mutator.prototype.collectMutations = function(excludeMutations) {
         Command = astNode && CommandRegistry.selectCommand(astNode);
         if (Command) {
             if (excludes[Command.code]) {
-                Command = MutateBaseCommand; //the command code is not included - revert to default command
+                Command = BaseMutationOperator; //the command code is not included - revert to default command
             }
             _.forEach(CommandExecutor.executeCommand(new Command(src, subtree, processMutation)),
                 function (subTree) {

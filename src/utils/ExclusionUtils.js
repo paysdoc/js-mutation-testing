@@ -9,7 +9,7 @@ var EXCLUSION_KEYWORD = '@excludeMutations';
 var _ = require('lodash'),
     log4js = require('log4js');
 
-var CommandRegistry = require('../mutationCommands/CommandRegistry');
+var CommandRegistry = require('../CommandRegistry');
 
 var logger = log4js.getLogger('ExclusionUtils');
 

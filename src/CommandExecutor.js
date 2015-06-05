@@ -1,18 +1,31 @@
 /**
- * The command executor will execute commands passed to it and do any possible housekeeping required
+ * The mutation operator handler will invoke the application of a set of mutations to the source code.
+ * The mutation operations will be stored in a stack to enable reversal of the mutation
  *
  * Created by Martin Koster on 2/11/15.
  */
-(function (exports) {
+(function (module) {
+    'use strict';
 
-    /**
-     * executes a given command
-     * @param {object} mutationCommand an instance of a mutation command
-     * @returns [object] sub-nodes to be processed
-     */
-    function executeCommand(mutationCommand) {
-        return mutationCommand.execute();
+    function MutationOperatorHandler() {
+        this._moStack = [];
     }
 
-    exports.executeCommand = executeCommand;
-})(module.exports);
+    MutationOperatorHandler.prototype.applyMutation = function(mutationOperatorSet) {
+        applyOperation(mutationOperatorSet, 'execute');
+        this._moStack.push(mutationOperatorSet);
+    };
+
+    MutationOperatorHandler.prototype.undo = function() {
+        var mutationOperatorSet = this._moStack.pop();
+        applyOperation(mutationOperatorSet, 'unExecute');
+    };
+
+    function applyOperation(operatorSet, operation) {
+        _.forEach(operatorSet, function(operator) {
+            operator[operation]();
+        })
+    }
+
+    module.exports = MutationOperatorHandler;
+})(module);
