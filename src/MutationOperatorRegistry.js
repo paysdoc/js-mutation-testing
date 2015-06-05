@@ -6,7 +6,7 @@
  *
  * Created by Martin Koster on 2/20/15.
  */
-(function CommandRegistry(exports) {
+(function MutationOperatorRegistry(exports) {
     'use strict';
 
     var _ = require('lodash'),
@@ -115,18 +115,18 @@
      * @param {object} node the node for which to return a mutation command
      * @returns {object} The command to be executed for this node
      */
-    function selectCommand(node) {
-        var commandRegistryItem = _.find(registry, function(registryItem) {
+    function selectMutationOperator(node) {
+        var registryItem = _.find(registry, function(registryItem) {
             return !!registryItem.predicate(node);
         });
-        return commandRegistryItem ? commandRegistryItem.Command : null;
+        return registryItem ? registryItem.Command : null;
     }
 
     /**
      * returns the command codes of all available mutation commands
      * @returns {[string]} a list of mutation codes
      */
-    function getAllCommandCodes() {
+    function getAllMutationCodes() {
         return _.keys(getDefaultExcludes());
     }
 
@@ -144,7 +144,7 @@
         return excludes;
     }
 
-    exports.selectCommand = selectCommand;
-    exports.getAllCommandCodes = getAllCommandCodes;
+    exports.selectMutationOperator = selectMutationOperator;
+    exports.getAllMutationCodes = getAllMutationCodes;
     exports.getDefaultExcludes = getDefaultExcludes;
 })(module.exports);

@@ -32,7 +32,7 @@
         this._original = null;
     };
 
-    module.exports.create = function() {
+    module.exports.create = function(subTree) {
         return [new UnaryExpressionMO(subTree)];
     };
     module.exports.code = 'UNARY_EXPRESSION';

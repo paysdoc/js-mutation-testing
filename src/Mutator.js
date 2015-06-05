@@ -11,8 +11,8 @@ var esprima = require('esprima'),
     _ = require('lodash'),
     BaseMutationOperator = require('../mutationOperator/BaseMutationOperator'),
     ExclusionUtils = require('../utils/ExclusionUtils'),
-    CommandRegistry = require('./CommandRegistry'),
-    CommandExecutor = require('./CommandExecutor');
+    MutationOperatorRegistry = require('./MutationOperatorRegistry'),
+    MutationOperatorHandler = require('./MutationOperatorHandler');
 
 function Mutator(src, options) {
     var ast = esprima.parse(src, _.merge({range: true, loc: true, tokens: true, comment: true}, options));
@@ -25,21 +25,22 @@ Mutator.prototype.collectMutations = function(excludeMutations) {
 
     var src = this._src,
         brackets = this._brackets,
-        globalExcludes = _.merge(CommandRegistry.getDefaultExcludes(), excludeMutations),
+        globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations),
         tree = {node: this._ast, parentMutationId: _.uniqueId()},
-        mutations = [];
+        mutationOperators = [];
 
     function forEachMutation(subtree, processMutation) {
         var astNode = subtree.node,
             excludes = subtree.excludes || globalExcludes,
-            Command;
+            MutationOperator;
 
-        Command = astNode && CommandRegistry.selectCommand(astNode);
-        if (Command) {
-            if (excludes[Command.code]) {
-                Command = BaseMutationOperator; //the command code is not included - revert to default command
+        MutationOperator = astNode && MutationOperatorRegistry.selectMutationOperator(astNode);
+        if (MutationOperator) {
+            if (!excludes[MutationOperator.code]) {
+                mutationOperators.push(MutationOperator.create());
+                MutationOperator = BaseMutationOperator; //the command code is not included - revert to default command
             }
-            _.forEach(CommandExecutor.executeCommand(new Command(src, subtree, processMutation)),
+            _.forEach(MutationOperatorHandler.executeCommand(new MutationOperator(src, subtree, processMutation)),
                 function (subTree) {
                     if(subTree.node) {
                         var localExcludes = ExclusionUtils.getExclusions(subTree.node);
@@ -54,10 +55,10 @@ Mutator.prototype.collectMutations = function(excludeMutations) {
 
     tree.excludes = _.merge({}, globalExcludes, ExclusionUtils.getExclusions(tree.node)); // add top-level local excludes
     forEachMutation(tree, function (mutation) {
-        mutations.push(_.merge(mutation, calibrateBeginAndEnd(mutation.begin, mutation.end, brackets)));
+        mutationOperators.push(_.merge(mutation, calibrateBeginAndEnd(mutation.begin, mutation.end, brackets)));
     });
 
-    return mutations;
+    return mutationOperators;
 };
 
 Mutator.prototype.applyMutation = function(mutation) {

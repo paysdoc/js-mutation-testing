@@ -9,7 +9,7 @@ var EXCLUSION_KEYWORD = '@excludeMutations';
 var _ = require('lodash'),
     log4js = require('log4js');
 
-var CommandRegistry = require('../CommandRegistry');
+var MutationOperatorRegistry = require('../MutationOperatorRegistry');
 
 var logger = log4js.getLogger('ExclusionUtils');
 
@@ -44,7 +44,7 @@ function parseASTComments(astNode) {
  */
 function getExclusions(astNode) {
     var comments = parseASTComments(astNode),
-        commandCodes = CommandRegistry.getAllCommandCodes(),
+        mutationCodes = MutationOperatorRegistry.getAllMutationCodes(),
         params,
         exclusions = {};
 
@@ -54,7 +54,7 @@ function getExclusions(astNode) {
             if(params) {
                 // Replace all single quotes with double quotes to be able to JSON parse them
                 _.forEach(JSON.parse(params[0].replace(/'/g, '\"')), function(exclusion) {
-                    if(commandCodes.indexOf(exclusion) !== -1) {
+                    if(mutationCodes.indexOf(exclusion) !== -1) {
                         exclusions[exclusion] = true;
                     } else {
                         logger.warn('Encountered an unknown exclusion: %s', exclusion);
@@ -64,7 +64,7 @@ function getExclusions(astNode) {
 
             // Exclude all mutations when none are specifically excluded
             if(_.keys(exclusions).length === 0){
-                _.forEach(commandCodes, function(code) {
+                _.forEach(mutationCodes, function(code) {
                     exclusions[code] = true;
                 });
             }

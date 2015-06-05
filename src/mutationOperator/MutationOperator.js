@@ -18,5 +18,6 @@
 
     MutationOperator.prototype.execute = MutationOperator.prototype.unExecute = function () {};
 
+    module.exports.create = function() {return [];};
     module.exports = MutationOperator;
 })(module);
