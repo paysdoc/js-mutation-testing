@@ -8,14 +8,14 @@
 
     var ChildNodeFinder = require('ChildNodeFinder');
 
-    var IterationChildNodeFinder = function(astNode, loopVariables) {
-        ChildNodeFinder.call(this, astNode, loopVariables);
+    var IterationChildNodeFinder = function(astNode) {
+        ChildNodeFinder.call(this, astNode);
     };
 
     IterationChildNodeFinder.prototype.find = function() {
         return ([
             // only return the 'body' node as mutating 'test' node introduces too great a risk of resulting in an infinite loop
-            {node: this._astNode.body, loopVariables: this.loopVariables}
+            this._astNode.body
         ]);
     };
 

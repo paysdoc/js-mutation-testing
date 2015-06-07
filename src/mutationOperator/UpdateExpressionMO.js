@@ -45,12 +45,8 @@
         this._original = null;
     };
 
-    function canMutate(astNode, loopVariables) {
-        return (loopVariables.indexOf(astNode.argument.name) < 0);
-    }
-
     module.exports.create = function(subTree) {
-        if (canMutate(this._astNode, this.loopVariables) && updateOperatorReplacements.hasOwnProperty(astNode.operator)) {
+        if (updateOperatorReplacements.hasOwnProperty(astNode.operator)) {
             return [new UpdateExpressionMO(subTree)];
         } else {
             return [];

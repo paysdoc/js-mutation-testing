@@ -8,15 +8,15 @@
 
     var ChildNodeFinder = require('ChildNodeFinder');
 
-    var ForLoopChildNodeFinder = function(astNode, loopVariables) {
-        ChildNodeFinder.call(this, astNode, loopVariables);
+    var ForLoopChildNodeFinder = function(astNode) {
+        ChildNodeFinder.call(this, astNode);
     };
 
     ForLoopChildNodeFinder.prototype.find = function() {
         return ([
             // only return the 'body' and 'init' nodes as mutating either 'test' or 'update' nodes introduce too great a risk of resulting in an infinite loop
-            {node: this._astNode.init, loopVariables: this.loopVariables},
-            {node: this._astNode.body, loopVariables: this.loopVariables}
+            this._astNode.init,
+            this._astNode.body
         ]);
     };
 

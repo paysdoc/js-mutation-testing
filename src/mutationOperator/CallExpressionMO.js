@@ -86,7 +86,7 @@
             replacement,
             mos = [];
 
-        args.forEach(function(arg, i) {
+        _.forEach(args, function(arg, i) {
             replacement = LiteralUtils.determineReplacement(arg.value);
             if (arg.type === 'Literal' && !!replacement) {
                 mos.push(new CallExpressionMO(subTree, 'arguments', replacement, i));

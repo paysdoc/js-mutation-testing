@@ -1,84 +1,52 @@
-/*
- * Collects, locates and applies mutations
- *
- * Copyright (c) 2014 Marco Stahl
+/**
+ * modifies an AST Node with the given mutations and returns a mutation report for each mutation done
+ * @author Martin Koster, created on 07/06/15.
  * Licensed under the MIT license.
  */
+(function (module) {
+    'use strict';
 
-'use strict';
-var esprima = require('esprima'),
-    escodegen = require('escodegen'),
-    _ = require('lodash'),
-    BaseMutationOperator = require('../mutationOperator/BaseMutationOperator'),
-    ExclusionUtils = require('../utils/ExclusionUtils'),
-    MutationOperatorRegistry = require('./MutationOperatorRegistry'),
-    MutationOperatorHandler = require('./MutationOperatorHandler');
+    var _ = require('lodash'),
+        MutationOperatorHandler = require('MutationOperatorHandler'),
+        esprima = require('esprima'),
+        escodegen = require('escodegen');
 
-function Mutator(src, options) {
-    var ast = esprima.parse(src, _.merge({range: true, loc: true, tokens: true, comment: true}, options));
-    this._src = src;
-    this._ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
-    this._brackets = _.filter(esprima.tokenize(src, {range: true}), {"type": "Punctuator", "value": "("});
-}
+    var Mutator = function(src) {
+        this._brackets = _.filter(esprima.tokenize(src, {range: true}), {"type": "Punctuator", "value": "("});
+        this._handler = new MutationOperatorHandler();
+    };
 
-Mutator.prototype.collectMutations = function(excludeMutations) {
+    /**
+     * Mutates the code by epplying each mutation operator in the given set
+     * @param mutationOperatorSet set of mutation operators which can be executed to effect a mutation on the code
+     * @returns {*} a mutation report detailing which part of the code was mutated and how
+     */
+    Mutator.prototype.mutate = function(mutationOperatorSet) {
+        var self = this,
+            mutationReports;
 
-    var src = this._src,
-        brackets = this._brackets,
-        globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations),
-        tree = {node: this._ast, parentMutationId: _.uniqueId()},
-        mutationOperators = [];
+        this._handler.undo(); //undo previous mutation operation, will do nothing if this is the first
+        mutationReports = this._handler.applyMutation(mutationOperatorSet);
+        return _.reduce(mutationReports, function(result, mutationReport) {
+            result.push(_.merge(mutationReport, calibrateBeginAndEnd(mutationReport.begin, mutationReport.end, self._brackets)));
+        }, []);
+    };
 
-    function forEachMutation(subtree, processMutation) {
-        var astNode = subtree.node,
-            excludes = subtree.excludes || globalExcludes,
-            MutationOperator;
+    function calibrateBeginAndEnd(begin, end, brackets) {
+        //return {begin: begin, end: end};
+        var beginBracket = _.find(brackets, function (bracket) {
+                return bracket.range[0] === begin;
+            }),
+            endBracket = _.find(brackets, function (bracket) {
+                return bracket.range[1] === end;
+            });
 
-        MutationOperator = astNode && MutationOperatorRegistry.selectMutationOperator(astNode);
-        if (MutationOperator) {
-            if (!excludes[MutationOperator.code]) {
-                mutationOperators.push(MutationOperator.create());
-                MutationOperator = BaseMutationOperator; //the command code is not included - revert to default command
-            }
-            _.forEach(MutationOperatorHandler.executeCommand(new MutationOperator(src, subtree, processMutation)),
-                function (subTree) {
-                    if(subTree.node) {
-                        var localExcludes = ExclusionUtils.getExclusions(subTree.node);
-                        subTree.excludes = _.merge({}, excludes, localExcludes);
-                    }
-
-                    forEachMutation(subTree, processMutation);
-                }
-            );
-        }
+        return {
+            begin: beginBracket && beginBracket.value === ')' ? begin + 1 : begin,
+            end: endBracket && endBracket.value === '(' ? end - 1 : end
+        };
     }
 
-    tree.excludes = _.merge({}, globalExcludes, ExclusionUtils.getExclusions(tree.node)); // add top-level local excludes
-    forEachMutation(tree, function (mutation) {
-        mutationOperators.push(_.merge(mutation, calibrateBeginAndEnd(mutation.begin, mutation.end, brackets)));
-    });
+    module.exports = Mutator;
 
-    return mutationOperators;
-};
-
-Mutator.prototype.applyMutation = function(mutation) {
-    var src = this._src;
-    return src.substr(0, mutation.begin) + mutation.replacement + src.substr(mutation.end);
-};
-
-function calibrateBeginAndEnd(begin, end, brackets) {
-    //return {begin: begin, end: end};
-    var beginBracket = _.find(brackets, function (bracket) {
-            return bracket.range[0] === begin;
-        }),
-        endBracket = _.find(brackets, function (bracket) {
-            return bracket.range[1] === end;
-        });
-
-    return {
-        begin: beginBracket && beginBracket.value === ')' ? begin + 1 : begin,
-        end: endBracket && endBracket.value === '(' ? end - 1 : end
-    };
-}
-
-module.exports = Mutator;
+})(module);

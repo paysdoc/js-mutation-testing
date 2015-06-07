@@ -5,7 +5,8 @@
 (function(module) {
     'use strict';
 
-    var MutationUtils = require('../utils/MutationUtils'),
+    var _ = require('lodash'),
+        MutationUtils = require('../utils/MutationUtils'),
         MutationOperator = require('MutationOperator');
 
     function BlockStatementMO (subTree, index) {
@@ -34,7 +35,7 @@
     module.exports.create = function(subTree) {
         var mos = [];
 
-        this._astNode.forEach(function (childNode, i) {
+        _.forEach(this._astNode, function (childNode, i) {
             mos.push(new BlockStatementMO(subTree, i));
         });
 

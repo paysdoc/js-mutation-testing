@@ -2,6 +2,7 @@
  * remove variables from the 'loopVariables' array if they are being redefined in the new function scope.
  * All variables are retrieved from the current AST node and iteratively compared with the content in loopVariables
  *
+ * TODO: currently dead code - remove if this doesn't prove to be required after all
  * Created by Martin Koster on 2/25/15.
  */
 var _ = require('lodash');
@@ -49,7 +50,7 @@ function hasNewScope(astNode) {
  * XOR : (intermediate) result + variable identifiers found => a combined array minus identifiers that overlap
  * INTERSECTION: (intermediate) result + combined array to filter out variables that weren't in the original loopVariables array
  * @param {object} variableDeclaration declaration block of one or more variables
- * @param {loopVariables} loopVariables list of variables that are part of a loop invariable and should therefore not undergo mutations - unless overridden by another variable in the current function scope
+ * @param {Array} loopVariables list of variables that are part of a loop invariable and should therefore not undergo mutations - unless overridden by another variable in the current function scope
  */
 function processScopeVariables(variableDeclaration, loopVariables) {
     var identifiers = [], exclusiveCombination;

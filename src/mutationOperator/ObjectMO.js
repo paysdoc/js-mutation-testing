@@ -5,7 +5,8 @@
 (function(module) {
     'use strict';
 
-    var MutationOperator = require('MutationOperator'),
+    var _ = require('lodash'),
+        MutationOperator = require('MutationOperator'),
         MutationUtils = require('../utils/MutationUtils');
 
     function ObjectMO (subTree, index) {
@@ -37,7 +38,7 @@
         var properties = subTree.properties,
             mos = [];
 
-        properties.forEach(function(property, i) {
+        _.forEach(properties, function(property, i) {
             if (property.kind = 'init') {
                 mos.push(new ObjectMO(sunbTree, i));
             }

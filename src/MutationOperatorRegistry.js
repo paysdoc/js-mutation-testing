@@ -22,7 +22,6 @@
         CallExpressionMO = require('mutationOperator/CallExpressionMO'),
         UpdateExpressionMO = require('mutationOperator/UpdateExpressionMO'),
         ArrayCNF = require('childNodeFinder/ArrayCNF'),
-        AssignmentCNF = require('childNodeFinder/AssignmentCNF'),
         CallExpressionCNF = require('childNodeFinder/CallExpressionCNF'),
         ChildNodeFinder = require('childNodeFinder/ChildNodeFinder'),
         ForLoopCNF = require('childNodeFinder/ForLoopCNF'),
@@ -52,7 +51,7 @@
         {// assignment expression: a = 'apple';
             predicate: function (node) {return node && node.type === 'AssignmentExpression';},
             MutationOperators: [],
-            childNodeFinder: AssignmentCNF
+            childNodeFinder: ChildNodeFinder
         },
         {// call expression: callingSomeFunction(param1, param2);
             predicate: function (node) {return node && node.type === 'CallExpression';},
@@ -111,15 +110,36 @@
     }
 
     /**
-     * Selectes a command based on the given Abstract Syntax Tree node.
+     * Selectes a set of mutation operators based on the given Abstract Syntax Tree node.
      * @param {object} node the node for which to return a mutation command
-     * @returns {object} The command to be executed for this node
+     * @param {object} globalExcludes object containing mutation codes to be excluded across the whole application
+     * @returns {object} The mutation operators to be applied for this node
      */
-    function selectMutationOperator(node) {
+    function selectMutationOperators(node, globalExcludes) {
+        var excludes = node.excludes || globalExcludes,
+            registryItem = _.find(registry, function (registryItem) {
+                return !!registryItem.predicate(node);
+            }),
+            result = [];
+
+        _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
+            if (!excludes[MutationOperator.code]) {
+                result.push.apply(MutationOperator.create(node));
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Selects the child node finder for the given Abstract Syntax Tree node.
+     * @param {object} node the node for which to return a mutation command
+     * @returns {object} The child node finder
+     */
+    function selectChildNodeFinder(node) {
         var registryItem = _.find(registry, function(registryItem) {
             return !!registryItem.predicate(node);
         });
-        return registryItem ? registryItem.Command : null;
+        return registryItem ? registryItem.childNodeFinder : null;
     }
 
     /**
@@ -144,7 +164,8 @@
         return excludes;
     }
 
-    exports.selectMutationOperator = selectMutationOperator;
+    exports.selectMutationOperators = selectMutationOperators;
+    exports.selectChildNodeFinder = selectChildNodeFinder;
     exports.getAllMutationCodes = getAllMutationCodes;
     exports.getDefaultExcludes = getDefaultExcludes;
 })(module.exports);

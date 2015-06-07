@@ -5,7 +5,8 @@
 (function(module) {
     'use strict';
 
-    var MutationUtils = require('../utils/MutationUtils'),
+    var _ = require('lodash'),
+        MutationUtils = require('../utils/MutationUtils'),
         MutationOperator = require('MutationOperator');
 
     function ArrayExpressionMO (subTree, index) {
@@ -35,7 +36,7 @@
     module.exports.create = function(subTree) {
         var mos = [];
 
-        subTree.elements.forEach(function(element, i) {
+        _.forEach(subTree.elements, function(element, i) {
             mos.push(new ArrayExpressionMO(subTree, i));
         });
 

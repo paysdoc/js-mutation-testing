@@ -8,14 +8,14 @@
 
     var ChildNodeFinder = require('ChildNodeFinder');
 
-    var LeftRightChildNodeFinder = function(astNode, loopVariables) {
-        ChildNodeFinder.call(this, astNode, loopVariables);
+    var LeftRightChildNodeFinder = function(astNode) {
+        ChildNodeFinder.call(this, astNode);
     };
 
     LeftRightChildNodeFinder.prototype.find = function() {
         return [
-            {node: this._astNode.left, loopVariables: this.loopVariables},
-            {node: this._astNode.right, loopVariables: this.loopVariables}
+            this._astNode.left,
+            this._astNode.right
         ];
     };
 

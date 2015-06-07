@@ -9,14 +9,14 @@
     var _ = require('lodash'),
         ChildNodeFinder = require('ChildNodeFinder');
 
-    var ArrayChildNodeFinder = function(astNode, loopVariables) {
-        ChildNodeFinder.call(this, astNode, loopVariables);
+    var ArrayChildNodeFinder = function(astNode) {
+        ChildNodeFinder.call(this, astNode);
     };
 
     ArrayChildNodeFinder.prototype.find = function() {
         var childNodes = [];
         _.forOwn(this._astNode, function (child) {
-            childNodes.push({node: child, loopVariables: this.loopVariables});
+            childNodes.push(child);
         }, this);
         return childNodes;
     };

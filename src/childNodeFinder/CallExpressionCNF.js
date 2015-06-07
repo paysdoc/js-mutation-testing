@@ -9,17 +9,17 @@
     var _ = require('lodash'),
         ChildNodeFinder = require('ChildNodeFinder');
 
-    var CallExpressionChildNodeFinder = function(astNode, loopVariables) {
-        ChildNodeFinder.call(this, astNode, loopVariables);
+    var CallExpressionChildNodeFinder = function(astNode) {
+        ChildNodeFinder.call(this, astNode);
     };
 
     CallExpressionChildNodeFinder.prototype.find = function() {
         var childNodes = [];
 
         _.forEach(this._astNode['arguments'], function(arg) {
-            childNodes.push({node: arg, loopVariables: this.loopVariables});
+            childNodes.push(arg);
         }, this);
-        childNodes.push({node: astNode.callee, loopVariables: this.loopVariables});
+        childNodes.push(astNode.callee);
         return childNodes;
     };
 
