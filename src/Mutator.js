@@ -8,16 +8,15 @@
 
     var _ = require('lodash'),
         MutationOperatorHandler = require('MutationOperatorHandler'),
-        esprima = require('esprima'),
-        escodegen = require('escodegen');
+        JSParserWrapper = require('JSParserWrapper');
 
     var Mutator = function(src) {
-        this._brackets = _.filter(esprima.tokenize(src, {range: true}), {"type": "Punctuator", "value": "("});
+        this._brackets = _.filter(JSParserWrapper.tokenize(src, {range: true}), {"type": "Punctuator", "value": "("});
         this._handler = new MutationOperatorHandler();
     };
 
     /**
-     * Mutates the code by epplying each mutation operator in the given set
+     * Mutates the code by applying each mutation operator in the given set
      * @param mutationOperatorSet set of mutation operators which can be executed to effect a mutation on the code
      * @returns {*} a mutation report detailing which part of the code was mutated and how
      */
@@ -25,11 +24,18 @@
         var self = this,
             mutationReports;
 
-        this._handler.undo(); //undo previous mutation operation, will do nothing if this is the first
+        this.unMutate();
         mutationReports = this._handler.applyMutation(mutationOperatorSet);
         return _.reduce(mutationReports, function(result, mutationReport) {
             result.push(_.merge(mutationReport, calibrateBeginAndEnd(mutationReport.begin, mutationReport.end, self._brackets)));
         }, []);
+    };
+
+    /**
+     * undo previous mutation operation, will do nothing if there is no mutation
+     */
+    Mutator.prototype.unMutate = function() {
+        this._handler.undo();
     };
 
     function calibrateBeginAndEnd(begin, end, brackets) {

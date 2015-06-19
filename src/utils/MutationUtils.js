@@ -3,7 +3,7 @@
  * Created by Martin Koster on 2/16/15.
  */
 var _ = require('lodash'),
-    escodegen = require('escodegen');
+    JSParserWrapper = require('../JSParserWrapper');
 
 var createMutation = function (astNode, endOffset, original, replacement) {
     replacement = replacement || '';
@@ -13,7 +13,7 @@ var createMutation = function (astNode, endOffset, original, replacement) {
         end: endOffset,
         line: astNode.loc.start.line,
         col: astNode.loc.start.column,
-        original: _.isObject(original) ? escodegen.generate(original) : original,
+        original: _.isObject(original) ? JSParserWrapper.generate(original) : original,
         replacement: replacement
     };
 };

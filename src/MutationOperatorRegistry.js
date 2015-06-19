@@ -120,11 +120,13 @@
             registryItem = _.find(registry, function (registryItem) {
                 return !!registryItem.predicate(node);
             }),
-            result = [];
+            result = {operators: [], excludes: []};
 
         _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
             if (!excludes[MutationOperator.code]) {
-                result.push.apply(MutationOperator.create(node));
+                Array.prototype.push.apply(result.operators, MutationOperator.create(node));
+            } else {
+                result.excludes.push(MutationOperator.code);
             }
         });
         return result;

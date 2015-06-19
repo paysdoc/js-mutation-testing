@@ -181,35 +181,19 @@ module.exports.find = function(fileName, path, maxDepth) {
     return deferred.promise;
 };
 
-module.exports.promiseToReadFile = function promiseToReadFile(fileName) {
-    return Q.Promise(function(resolve, reject){
-        fs.readFile(fileName, 'utf-8', function(error, data) {
-            error ? reject(error) : resolve(data);
-        });
-    });
+module.exports.promiseToReadFile = function promiseToReadFile(fileName, encoding) {
+    return Q.nfcall(fs.readFile, fileName, encoding || 'utf-8');
 };
 
 module.exports.promiseToWriteFile = function promiseToWriteFile(fileName, data) {
-    return Q.Promise(function(resolve, reject){
-        fs.writeFile(fileName, data, function(error, data) {
-            error ? reject(error) : resolve(data);
-        });
-    });
+    return Q.nfcall(fs.writeFile, fileName, data);
 };
 
 module.exports.promiseToReadDir = function promiseToReadDir(directory) {
-    return Q.Promise(function(resolve, reject){
-        fs.readdir(directory, function(error, data) {
-            error ? reject(error) : resolve(data);
-        });
-    });
+    return Q.nfCall(fs.readdir, directory);
 };
 
 module.exports.promiseToStat = function promiseToStat(directory) {
-    return Q.Promise(function(resolve, reject){
-        fs.stat(directory, function(error, data) {
-            error ? reject(error) : resolve(data);
-        });
-    });
+    return Q.nfcall(fs.stat, directory);
 };
 

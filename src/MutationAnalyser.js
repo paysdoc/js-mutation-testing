@@ -7,16 +7,14 @@
 (function(module) {
     'use strict';
 
-    var esprima = require('esprima'),
-        escodegen = require('escodegen'),
-        _ = require('lodash'),
+    var _ = require('lodash'),
         ExclusionUtils = require('../utils/ExclusionUtils'),
         MutationOperatorRegistry = require('./MutationOperatorRegistry');
 
-    function Mutator(src, options) {
-        var ast = esprima.parse(src, _.merge({range: true, loc: true, tokens: true, comment: true}, options));
-        this._src = src;
-        this._ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
+    function Mutator(ast) {
+        this._ast = ast;
+        this._mutationOperators = [];
+        this._excludedOperators = [];
     }
 
     /**
@@ -25,29 +23,43 @@
      * @returns {Array} list of mutation operators that can be applied to this code
      */
     Mutator.prototype.collectMutations = function(excludeMutations) {
-        var globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations),
-            tree = {node: this._ast, parentMutationId: _.uniqueId()},
-            mutationOperators = [];
+        var self = this,
+            tree = {node: self._ast},
+            globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations),
+            mutationOperators = this._mutationOperators,
+            excludedMutations = this._excludeMutations;
 
-        function forEachMutation(subtree) {
+        function analyseNode(subtree) {
             var astNode = subtree.node,
+                selectedMutationOperators,
                 childNodeFinder;
 
             if (astNode) {
-                mutationOperators.push.apply(MutationOperatorRegistry.selectMutationOperators(astNode));
+                selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(astNode);
+                Array.prototype.push.apply(mutationOperators, selectedMutationOperators.operators);
+                Array.prototype.push.apply(excludedMutations, selectedMutationOperators.excludes);
                 childNodeFinder = MutationOperatorRegistry.selectAllChildren(astNode);
             }
             if (childNodeFinder) {
-                _.forEach(childNodeFinder.find, function(childNode) {
-                    mutationOperators.push.apply(forEachMutation(childNode));
+                _.forEach(childNodeFinder.find(), function (childNode) {
+                    analyseNode({
+                        node: childNode,
+                        excludes: _.merge({}, globalExcludes, ExclusionUtils.getExclusions(childNode))
+                    });
                 });
             }
         }
 
-        tree.excludes = _.merge({}, globalExcludes, ExclusionUtils.getExclusions(tree.node)); // add top-level local excludes
-        forEachMutation(tree, []);
+        if (!(mutationOperators && mutationOperators.length)) {
+            tree.excludes = _.merge({}, globalExcludes, ExclusionUtils.getExclusions(tree.node)); // add top-level local excludes
+            analyseNode(tree);
+        }
 
         return mutationOperators;
+    };
+
+    Mutator.prototype.getExcludedMutations = function() {
+        return this._excludedOperators;
     };
 
     module.exports = Mutator;

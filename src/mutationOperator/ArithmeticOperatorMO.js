@@ -37,7 +37,7 @@
     };
 
     module.exports.code = 'MATH';
-    modeule.exports.create = function(subTree) {
+    module.exports.create = function(subTree) {
         return operators.hasOwnProperty(subTree.operator) ? [new ArithmeticOperatorMO(subTree)] : [];
     }
 })(module);
