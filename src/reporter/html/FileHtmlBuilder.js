@@ -68,7 +68,7 @@ function writeReport(fileResult, formatter, formattedSourceLines, baseDir) {
         path.join(baseDir, fileName + ".html"),
         fileTemplate({
             style: fs.readFileSync(path.join(__dirname, 'templates/file.css'), 'utf-8'),
-            script: fs.readFileSync(path.join(__dirname, 'templates/file.js'), 'utf-8'),
+            script: fs.readFileSync(path.join(__dirname, 'templates/file.jsTempl'), 'utf-8'),
             source: '<ol>' + formattedSource + '</ol>',
             mutations: mutations,
             breadcrumb: breadcrumb,

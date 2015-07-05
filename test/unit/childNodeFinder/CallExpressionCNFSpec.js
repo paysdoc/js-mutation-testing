@@ -7,7 +7,7 @@ describe("CallExpressionCNF", function(){
 
     var CallExpressionCNF = require('../../../src/childNodeFinder/CallExpressionCNF');
 
-    it("finds the right child node on a given array node", function() {
+    it("finds the right child node on a given call expression node", function() {
         var node = {
                 "type": "CallExpression",
                 "callee": {

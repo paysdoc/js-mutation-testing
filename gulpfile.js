@@ -8,6 +8,6 @@ var gulp = require('gulp'),
 
 require('require-dir')('./gulp');
 gulp.task('clean', function() {
-    del('build');
+    del(['build', 'coverage']);
 });
 gulp.task('default', ['clean', 'lint', 'test', 'e2e', 'build']);

@@ -15,8 +15,8 @@
 
     ArrayChildNodeFinder.prototype.find = function() {
         var childNodes = [];
-        _.forOwn(this._astNode, function (child) {
-            childNodes.push(child);
+        _.each(this._astNode.elements, function (element) {
+            childNodes.push(element);
         }, this);
         return childNodes;
     };

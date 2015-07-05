@@ -8,8 +8,8 @@ describe("ArrayCNF", function(){
     var ArrayCNF = require('../../../src/childNodeFinder/ArrayCNF');
 
     it("finds the right child node on a given array node", function() {
-        var node = {1: "bla", 2: "blo", 3: "blu"};
-        expect(new ArrayCNF(node).find()).toEqual(["bla", "blo", "blu"]);
+        var node = {"type": "ArrayExpression",
+            "elements": ["elem1","elem2",{"type": "BinaryExpression", "operator": "*"}]};
+        expect(new ArrayCNF(node).find()).toEqual([ 'elem1', 'elem2', { type: 'BinaryExpression', operator: '*' }]);
     });
 });
-
