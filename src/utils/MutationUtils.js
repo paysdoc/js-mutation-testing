@@ -25,17 +25,18 @@ var createAstArrayElementDeletionMutation = function (astArray, elementIndex) {
     return createMutation(astArray[elementIndex], endOffset, astArray[elementIndex]);
 };
 
-var createOperatorMutation = function (astNode, original, replacement) {
-    var mutation = createUnaryOperatorMutation(astNode, astNode.right.range[0], original, replacement);
+var createUnaryOperatorMutation = function (astNode, original, replacement) {
+    var mutation = createMutation(astNode, astNode.range[0]+1, original, replacement);
     return _.merge(mutation, {
-        begin: astNode.left.range[1],
         line: astNode.loc.end.line,
         col: astNode.loc.end.column
     });
 };
-var createUnaryOperatorMutation = function (astNode, original, replacement) {
-    var mutation = createMutation(astNode, astNode.range[0]+1, original, replacement);
+
+var createOperatorMutation = function (astNode, original, replacement) {
+    var mutation = createUnaryOperatorMutation(astNode, astNode.right.range[0], original, replacement);
     return _.merge(mutation, {
+        begin: astNode.left.range[1],
         line: astNode.loc.end.line,
         col: astNode.loc.end.column
     });

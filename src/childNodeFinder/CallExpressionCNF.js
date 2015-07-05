@@ -7,7 +7,7 @@
     'use strict';
 
     var _ = require('lodash'),
-        ChildNodeFinder = require('ChildNodeFinder');
+        ChildNodeFinder = require('./ChildNodeFinder');
 
     var CallExpressionChildNodeFinder = function(astNode) {
         ChildNodeFinder.call(this, astNode);
@@ -19,7 +19,7 @@
         _.forEach(this._astNode['arguments'], function(arg) {
             childNodes.push(arg);
         }, this);
-        childNodes.push(astNode.callee);
+        childNodes.push(this._astNode.callee);
         return childNodes;
     };
 

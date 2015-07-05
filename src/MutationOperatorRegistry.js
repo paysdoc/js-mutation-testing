@@ -10,24 +10,24 @@
     'use strict';
 
     var _ = require('lodash'),
-        ComparisonOperatorMO = require('mutationOperator/ComparisonOperatorMO'),
-        EqualityOperatorMO = require('mutationOperator/EqualityOperatorMO'),
-        ArithmeticOperatorMO = require('mutationOperator/ArithmeticOperatorMO'),
-        ArrayExpressionMO = require('mutationOperator/ArrayExpressionMO'),
-        BlockStatementMO = require('mutationOperator/BlockStatementMO'),
-        ObjectMO = require('mutationOperator/ObjectMO'),
-        LiteralMO = require('mutationOperator/LiteralMO'),
-        UnaryExpressionMO = require('mutationOperator/UnaryExpressionMO'),
-        LogicalExpressionMO = require('mutationOperator/LogicalExpressionMO'),
-        CallExpressionMO = require('mutationOperator/CallExpressionMO'),
-        UpdateExpressionMO = require('mutationOperator/UpdateExpressionMO'),
-        ArrayCNF = require('childNodeFinder/ArrayCNF'),
-        CallExpressionCNF = require('childNodeFinder/CallExpressionCNF'),
-        ChildNodeFinder = require('childNodeFinder/ChildNodeFinder'),
-        ForLoopCNF = require('childNodeFinder/ForLoopCNF'),
-        IterationCNF = require('childNodeFinder/IterationCNF'),
-        LeftRightCNF = require('childNodeFinder/LeftRightCNF'),
-        PropertyCNF = require('childNodeFinder/PropertyCNF');
+        ComparisonOperatorMO = require('./mutationOperator/ComparisonOperatorMO'),
+        EqualityOperatorMO = require('./mutationOperator/EqualityOperatorMO'),
+        ArithmeticOperatorMO = require('./mutationOperator/ArithmeticOperatorMO'),
+        ArrayExpressionMO = require('./mutationOperator/ArrayExpressionMO'),
+        BlockStatementMO = require('./mutationOperator/BlockStatementMO'),
+        ObjectMO = require('./mutationOperator/ObjectMO'),
+        LiteralMO = require('./mutationOperator/LiteralMO'),
+        UnaryExpressionMO = require('./mutationOperator/UnaryExpressionMO'),
+        LogicalExpressionMO = require('./mutationOperator/LogicalExpressionMO'),
+        CallExpressionMO = require('./mutationOperator/CallExpressionMO'),
+        UpdateExpressionMO = require('./mutationOperator/UpdateExpressionMO'),
+        ArrayCNF = require('./childNodeFinder/ArrayCNF'),
+        CallExpressionCNF = require('./childNodeFinder/CallExpressionCNF'),
+        ChildNodeFinder = require('./childNodeFinder/ChildNodeFinder'),
+        ForLoopCNF = require('./childNodeFinder/ForLoopCNF'),
+        IterationCNF = require('./childNodeFinder/IterationCNF'),
+        LeftRightCNF = require('./childNodeFinder/LeftRightCNF'),
+        PropertyCNF = require('./childNodeFinder/PropertyCNF');
 
     /*
      * Add a new command to this registry together with its predicate. It will automatically be included in the system

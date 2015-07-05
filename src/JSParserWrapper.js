@@ -26,4 +26,5 @@
 
     exports.parse = parse;
     exports.stringify = stringify;
+    exports.tokenize = tokenize;
 })(module.exports);

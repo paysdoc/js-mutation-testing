@@ -163,7 +163,7 @@ module.exports.find = function(fileName, path, maxDepth) {
                     }
                 }, function(error) {
                     reject(error);
-                })
+                });
             }));
         });
 
@@ -171,8 +171,11 @@ module.exports.find = function(fileName, path, maxDepth) {
             var resolvedPromise = _.find(arguments, function(contentPromise) {
                 return contentPromise.state === "fulfilled";
             });
-            resolvedPromise ? deferred.resolve(resolvedPromise.value) :
+            if (resolvedPromise) {
+                deferred.resolve(resolvedPromise.value);
+            } else {
                 deferred.reject(new Error('Could not find ' + fileName));
+            }
         });
     }, function(error) {
         deferred.reject(new Error('Could not read dir "' + path + '": ' + error.message));

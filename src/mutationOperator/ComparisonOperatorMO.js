@@ -7,7 +7,7 @@
 (function(module) {
     'use strict';
 
-    var MutationOperator = require('MutationOperator'),
+    var MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils'),
         operators = {
             '<': {boundary: '<=', negation: '>='},

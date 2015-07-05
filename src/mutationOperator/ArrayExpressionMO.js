@@ -7,7 +7,7 @@
 
     var _ = require('lodash'),
         MutationUtils = require('../utils/MutationUtils'),
-        MutationOperator = require('MutationOperator');
+        MutationOperator = require('./MutationOperator');
 
     function ArrayExpressionMO (subTree, index) {
         MutationOperator.call(this, subTree);

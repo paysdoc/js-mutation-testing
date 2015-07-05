@@ -8,7 +8,7 @@
     'use strict';
 
     var _ = require('lodash'),
-        ExclusionUtils = require('../utils/ExclusionUtils'),
+        ExclusionUtils = require('./utils/ExclusionUtils'),
         MutationOperatorRegistry = require('./MutationOperatorRegistry');
 
     function Mutator(ast) {

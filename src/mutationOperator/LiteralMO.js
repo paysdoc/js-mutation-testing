@@ -7,7 +7,7 @@
 
     var MutationUtils = require('../utils/MutationUtils'),
         LiteralUtils = require('../utils/LiteralUtils'),
-        MutationOperator = require('MutationOperator');
+        MutationOperator = require('./MutationOperator');
 
     function LiteralMO (subTree) {
         MutationOperator.call(this, subTree);

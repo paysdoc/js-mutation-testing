@@ -6,7 +6,7 @@
 (function(module) {
     'use strict';
 
-    var MutationOperator = require('MutationOperator'),
+    var MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils'),
         operators = {
             '&&': '||',
@@ -35,7 +35,7 @@
     };
 
     module.exports.create = function(subTree){
-        return operators.hasOwnProperty(this._astNode.operator) ? [new LogicalExpressionMO(subTree)] : []
+        return operators.hasOwnProperty(this._astNode.operator) ? [new LogicalExpressionMO(subTree)] : [];
     };
     module.exports.code = 'LOGICAL_EXPRESSION';
 })(module);

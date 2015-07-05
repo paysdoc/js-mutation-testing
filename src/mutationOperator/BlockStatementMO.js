@@ -7,7 +7,7 @@
 
     var _ = require('lodash'),
         MutationUtils = require('../utils/MutationUtils'),
-        MutationOperator = require('MutationOperator');
+        MutationOperator = require('./MutationOperator');
 
     function BlockStatementMO (subTree, index) {
         MutationOperator.call(this, subTree);
@@ -15,11 +15,12 @@
     }
 
     BlockStatementMO.prototype.execute = function () {
-        var mutation;
+        var astNode = this._astNode,
+            mutation;
 
         if (!this._original) {
-            this._original = this._astNode.splice(this._index, 1)[0];
-            mutation = MutationUtils.createMutation(childNode, childNode.range[1], this._parentMutationId);
+            this._original = astNode.splice(this._index, 1)[0];
+            mutation = MutationUtils.createMutation(astNode, astNode.range[1], this._original);
         }
 
         return mutation;

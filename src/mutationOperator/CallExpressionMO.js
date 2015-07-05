@@ -29,54 +29,54 @@
         var executor = executors[this._mutatee];
         
         if (executor && !this._original) {
-            return executor ? executor[1].call(this) : null;
+            return executor ? executor[0](this) : null;
         } 
     };
 
     CallExpressionPropertyMO.prototype.unExecute = function() {
         var executor = executors[this._mutatee];
         if (this._original && executor) {
-            executor.call(this);
+            executor[1](this);
             this._original = null;
         }
     };
     
-    function mutateArgs() {
-        var i = this._index,
-            args = this._astNode['arguments'];
+    function mutateArgs(ctx) {
+        var i = ctx._index,
+            args = ctx._astNode['arguments'];
 
-        this._original = args[i];
-        args[i] = this._replacement;
-        return MutationUtils.createMutation(args[i], args[i].range[1], this._original, this._replacement);
+        ctx._original = args[i];
+        args[i] = ctx._replacement;
+        return MutationUtils.createMutation(args[i], args[i].range[1], ctx._original, ctx._replacement);
     }
 
-    function restoreArgs() {
-        this._astNode['arguments'][this._index] = this._original;
+    function restoreArgs(ctx) {
+        ctx._astNode['arguments'][ctx._index] = ctx._original;
     }
 
-    function mutateSelf() {
-        var astNode = this._astNode,
-            mutation = MutationUtils.createMutation(astNode, astNode.range[1], this._original, this._replacement);
+    function mutateSelf(ctx) {
+        var astNode = ctx._astNode,
+            mutation = MutationUtils.createMutation(astNode, astNode.range[1], ctx._original, ctx._replacement);
 
-        this._original = {};
+        ctx._original = {};
         _.forOwn(astNode, function(value, key) {
-            this._original[key] = value;
+            ctx._original[key] = value;
             delete astNode[key];
-        }, this);
-        _.forOwn(this._replacement, function(value, key) {
+        });
+        _.forOwn(ctx._replacement, function(value, key) {
             astNode[key] = value;
         });
 
         return mutation;
     }
 
-    function restoreSelf() {
-        var astNode = this._astNode;
+    function restoreSelf(ctx) {
+        var astNode = ctx._astNode;
         
         _.forOwn(astNode, function(value, key) {
             delete astNode[key];
         });
-        _.forOwn(this._original, function(value, key) {
+        _.forOwn(ctx._original, function(value, key) {
             astNode[key] = value;
         });
     }
@@ -89,19 +89,19 @@
         _.forEach(args, function(arg, i) {
             replacement = LiteralUtils.determineReplacement(arg.value);
             if (arg.type === 'Literal' && !!replacement) {
-                mos.push(new CallExpressionMO(subTree, 'arguments', replacement, i));
-                // we have found a literal mutation for this argument, so we don't need to mutate more
+                mos.push(new CallExpressionPropertyMO(subTree, 'arguments', replacement, i));
+                // we have found a literal mutation for given argument, so we don't need to mutate more
                 return mos;
             }
-            mos.push(new CallExpressionMO(subTree, 'arguments', 'MUTATION!', i));
+            mos.push(new CallExpressionPropertyMO(subTree, 'arguments', 'MUTATION!', i));
         });
 
         if (args.length === 1) {
-            mos.push(new CallExpressionMO(subTree, 'self', args[0]));
+            mos.push(new CallExpressionPropertyMO(subTree, 'self', args[0]));
         }
 
         if (subTree.callee.type === 'MemberExpression') {
-            mos.push(new CallExpressionMO(subTree, 'self', astNode.callee.object));
+            mos.push(new CallExpressionPropertyMO(subTree, 'self', subTree.callee.object));
         }
 
         return mos;

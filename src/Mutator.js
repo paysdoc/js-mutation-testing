@@ -7,8 +7,8 @@
     'use strict';
 
     var _ = require('lodash'),
-        MutationOperatorHandler = require('MutationOperatorHandler'),
-        JSParserWrapper = require('JSParserWrapper');
+        MutationOperatorHandler = require('./MutationOperatorHandler'),
+        JSParserWrapper = require('./JSParserWrapper');
 
     var Mutator = function(src) {
         this._brackets = _.filter(JSParserWrapper.tokenize(src, {range: true}), {"type": "Punctuator", "value": "("});

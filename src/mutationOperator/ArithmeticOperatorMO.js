@@ -6,7 +6,7 @@
 (function(module) {
     'use strict';
 
-    var MutationOperator = require('MutationOperator'),
+    var MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils'),
         operators = {
             '+': '-',
@@ -39,5 +39,5 @@
     module.exports.code = 'MATH';
     module.exports.create = function(subTree) {
         return operators.hasOwnProperty(subTree.operator) ? [new ArithmeticOperatorMO(subTree)] : [];
-    }
+    };
 })(module);

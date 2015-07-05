@@ -5,7 +5,8 @@
 (function(module) {
     'use strict';
 
-    var MutationOperator = require('MutationOperator'),
+    var _ = require('lodash'),
+        MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils'),
         updateOperatorReplacements = {
             '++': '--',
@@ -45,9 +46,9 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree) {
+    module.exports.create = function(astNode) {
         if (updateOperatorReplacements.hasOwnProperty(astNode.operator)) {
-            return [new UpdateExpressionMO(subTree)];
+            return [new UpdateExpressionMO(astNode)];
         } else {
             return [];
         }

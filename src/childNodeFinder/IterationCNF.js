@@ -6,7 +6,7 @@
 (function(module) {
     'use strict';
 
-    var ChildNodeFinder = require('ChildNodeFinder');
+    var ChildNodeFinder = require('./ChildNodeFinder');
 
     var IterationChildNodeFinder = function(astNode) {
         ChildNodeFinder.call(this, astNode);

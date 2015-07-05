@@ -1,13 +1,8 @@
-/**
- * config file for karma
- * @author Martin Koster [paysdoc@gmail.com], created on 21/06/15.
- * Licensed under the MIT license.
- */
-module.exports = function (config) {
-    config.set({
+// Karma configuration
+// Generated on Wed Jul 01 2015 09:04:49 GMT+0200 (CEST)
 
-        // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: '.',
+module.exports = function(config) {
+  config.set({
 
         // list of files / patterns to load in the browser
         files: [], //will be populated by Gulp
@@ -15,8 +10,11 @@ module.exports = function (config) {
         // list of files to exclude
         exclude: [],
 
+        // base path that will be used to resolve all patterns (eg. files, exclude)
+         basePath: '../../',
+
         //frameworks used by karma
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'mocha', 'chai'],// 'requirejs'],
 
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -38,7 +36,7 @@ module.exports = function (config) {
 
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-        logLevel: config.LOG_TRACE,
+        logLevel: config.LOG_INFO,
 
         // enable / disable watching file and executing tests whenever any file changes
         autoWatch: true,
@@ -49,7 +47,6 @@ module.exports = function (config) {
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
-        singleRun: false,
-
-    });
+        singleRun: true
+  });
 };

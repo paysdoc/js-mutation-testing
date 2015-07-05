@@ -9,7 +9,7 @@
     'use strict';
 
     var MutationUtils = require('../utils/MutationUtils'),
-        MutationOperator = require('MutationOperator');
+        MutationOperator = require('./MutationOperator');
 
     function UnaryExpressionMO(subTree) {
         MutationOperator.call(this, subTree);

@@ -6,11 +6,11 @@
 (function(module) {
     'use strict';
 
-    var MutationAnalyser = require('MutationAnalyser'),
-        Mutator = require('Mutator'),
-        JSParserWrapper = require('JSParserWrapper'),
+    var MutationAnalyser = require('./MutationAnalyser'),
+        Mutator = require('./Mutator'),
+        JSParserWrapper = require('./JSParserWrapper'),
         exec = require('sync-exec'),
-        IOUtils = require('utils/IOUtils'),
+        IOUtils = require('./utils/IOUtils'),
         _ = require('lodash'),
         log4js = require('log4js'),
         Q = require('q');
@@ -21,7 +21,7 @@
         this._fileNames = fileNames;
     };
 
-    MutationTester.prototype.test = function(testCallback, options) {
+    MutationTester.prototype.test = function(testCallback) {
         var self = this,
             promise = new Q({});
         _.forEach(this._fileNames, function(fileName) {

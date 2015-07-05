@@ -13,6 +13,7 @@
     "globals": {
         "require": false,
         "describe": false,
+        "document": false,
         "it": false,
         "before": false,
         "beforeEach": false,

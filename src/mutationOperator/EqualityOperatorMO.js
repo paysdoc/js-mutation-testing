@@ -7,7 +7,7 @@
 (function(module) {
     'use strict';
 
-    var MutationOperator = require('MutationOperator'),
+    var MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils'),
         operators = {
             '===': {boundary: '==', negation: '!=='},
@@ -47,7 +47,7 @@
             }
 
             if (!!negationOperator) {
-                return new EqualityOperatorMO(subTree, negationOperator)
+                return new EqualityOperatorMO(subTree, negationOperator);
             }
         }
     };
