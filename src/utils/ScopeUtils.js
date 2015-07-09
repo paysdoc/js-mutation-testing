@@ -28,7 +28,9 @@ function removeOverriddenLoopVariables(astNode, loopVariables) {
         result = processScopeVariables(astNode, loopVariables);
     }
     _.forOwn(astNode, function (childNode) {
-        result = removeOverriddenLoopVariables(childNode, result);
+        if(astNode !== childNode) {
+            result = removeOverriddenLoopVariables(childNode, result);
+        }
     });
 
     return result;

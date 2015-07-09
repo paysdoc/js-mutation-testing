@@ -42,19 +42,18 @@
   },
   "dependencies": {
     "escodegen": "^1.6.1",
-    "esprima": "~1.2.2",
-    "fs-extra": "^0.16.4",
-    "glob": "^5.0.0",
+    "esprima": "~1.2.5",
+    "fs-extra": "^0.16.5",
+    "glob": "^5.0.10",
     "handlebars": "^3.0.0",
     "htmlparser2": "^3.8.2",
-    "istanbul": "~0.3.0",
-    "lodash": "~2.4.1",
-    "log4js": "^0.6.24",
-    "q": "~1.0.1",
+    "lodash": "~3.9.3",
+    "log4js": "^0.6.25",
+    "q": "~2.0.3",
     "require-dir": "^0.3.0",
     "require-uncache": "0.0.2",
-    "sync-exec": "~0.3.2",
+    "sync-exec": "~0.5.0",
     "temp": "^0.8.1",
-    "xml2js": "^0.4.6"
+    "xml2js": "^0.4.8"
   }
 }

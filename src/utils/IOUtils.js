@@ -15,20 +15,7 @@ var fs = require('fs'),
  * @returns {Array} the directory segments in the path
  */
 module.exports.getDirectoryList = function getDirectoryList(path, excludeLastSegment) {
-    var pathRegex = /([^\\\/]+)/g,
-        currentSegment,
-        segment = pathRegex.exec(path),
-        directoryList = [];
-
-    while (segment) {
-        currentSegment = segment[0];
-        segment = pathRegex.exec(path);
-        if (!excludeLastSegment || segment) {
-            directoryList.push(currentSegment);
-        }
-    }
-
-    return directoryList;
+    return this.normalizeWindowsPath(path).split(/\/+/).slice(0, (excludeLastSegment ? -1 : undefined));
 };
 
 /**
@@ -37,7 +24,7 @@ module.exports.getDirectoryList = function getDirectoryList(path, excludeLastSeg
  * @param {string} parentDir parent directory to create path from
  */
 module.exports.createPathIfNotExists = function createPathIfNotExists(path, parentDir) {
-    var directoryList = (path === 'string') ? path.split(pathAux.sep) : path;
+    var directoryList = (_.isArray(path) ? path : this.getDirectoryList(path));
 
     _.forEach(directoryList, function(segment) {
         parentDir = pathAux.join(parentDir, segment);
@@ -163,7 +150,7 @@ module.exports.find = function(fileName, path, maxDepth) {
                     }
                 }, function(error) {
                     reject(error);
-                });
+                })
             }));
         });
 
@@ -171,11 +158,8 @@ module.exports.find = function(fileName, path, maxDepth) {
             var resolvedPromise = _.find(arguments, function(contentPromise) {
                 return contentPromise.state === "fulfilled";
             });
-            if (resolvedPromise) {
-                deferred.resolve(resolvedPromise.value);
-            } else {
+            resolvedPromise ? deferred.resolve(resolvedPromise.value) :
                 deferred.reject(new Error('Could not find ' + fileName));
-            }
         });
     }, function(error) {
         deferred.reject(new Error('Could not read dir "' + path + '": ' + error.message));
@@ -184,19 +168,35 @@ module.exports.find = function(fileName, path, maxDepth) {
     return deferred.promise;
 };
 
-module.exports.promiseToReadFile = function promiseToReadFile(fileName, encoding) {
-    return Q.nfcall(fs.readFile, fileName, encoding || 'utf-8');
+module.exports.promiseToReadFile = function promiseToReadFile(fileName) {
+    return Q.Promise(function(resolve, reject){
+        fs.readFile(fileName, 'utf-8', function(error, data) {
+            error ? reject(error) : resolve(data);
+        });
+    });
 };
 
 module.exports.promiseToWriteFile = function promiseToWriteFile(fileName, data) {
-    return Q.nfcall(fs.writeFile, fileName, data);
+    return Q.Promise(function(resolve, reject){
+        fs.writeFile(fileName, data, function(error, data) {
+            error ? reject(error) : resolve(data);
+        });
+    });
 };
 
 module.exports.promiseToReadDir = function promiseToReadDir(directory) {
-    return Q.nfCall(fs.readdir, directory);
+    return Q.Promise(function(resolve, reject){
+        fs.readdir(directory, function(error, data) {
+            error ? reject(error) : resolve(data);
+        });
+    });
 };
 
 module.exports.promiseToStat = function promiseToStat(directory) {
-    return Q.nfcall(fs.stat, directory);
+    return Q.Promise(function(resolve, reject){
+        fs.stat(directory, function(error, data) {
+            error ? reject(error) : resolve(data);
+        });
+    });
 };
 

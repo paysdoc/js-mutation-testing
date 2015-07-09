@@ -5,11 +5,12 @@
  */
 var HandleBars = require('handlebars'),
     HtmlParser = require('htmlparser2'),
+    log4js = require('log4js'),
     Q = require('q'),
     _ = require('lodash');
 
 var codeTemplate = HandleBars.compile('<span class="{{classes}}">');
-var mutationTemplate = HandleBars.compile('<div id="{{mutationId}}" class="{{mutationStatus}}">{{mutationText}}</div>');
+var mutationTemplate = HandleBars.compile('<tr class="{{mutationStatus}}"><td id="{{mutationId}}" class="{{mutationStatus}}">{{mutationText}}</td><td>{{mutationStatus}}</td></tr>');
 var HtmlFormatter = function(src) {
     this._src = src;
 };

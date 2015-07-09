@@ -2,21 +2,24 @@
  * Builds the HTML for each file in the given results
  * Created by Martin Koster on 3/2/15.
  */
-var fs = require('fs'),
-    _ = require('lodash'),
-    Q = require('q'),
+var _ = require('lodash'),
+    fs = require('fs'),
+    log4js = require('log4js'),
     path = require('path'),
-    Handlebars = require('handlebars'),
-    HtmlFormatter = require('./HtmlFormatter'),
-    IndexHtmlBuilder = require('./IndexHtmlBuilder');
+    Q = require('q');
 
-var fileTemplate = Handlebars.compile(fs.readFileSync(path.join(__dirname, '/templates/file.html'), 'utf-8'));
-var FileHtmlBuilder = function(successThreshold) {
-    this._successThreshold = successThreshold || 80;
+var HtmlFormatter = require('./HtmlFormatter'),
+    IndexHtmlBuilder = require('./IndexHtmlBuilder'),
+    StatUtils = require('./StatUtils'),
+    Templates = require('./Templates');
 
-    Handlebars.registerHelper('json', function(context) {
-        return JSON.stringify(context);
-    });
+
+var DEFAULT_CONFIG = {
+    successThreshold: 80
+};
+
+var FileHtmlBuilder = function(config) {
+    this._config = _.merge({}, DEFAULT_CONFIG, config);
 };
 
 /**
@@ -48,10 +51,8 @@ FileHtmlBuilder.prototype.createFileReports = function(fileResults, baseDir) {
  */
 function writeReport(fileResult, formatter, formattedSourceLines, baseDir) {
     var fileName = fileResult.fileName,
-        formattedSource = '',
-        stats = fileResult.stats,
+        stats = StatUtils.decorateStatPercentages(fileResult.stats),
         parentDir = path.normalize(baseDir + '/..'),
-        coverage = stats.all ? ((stats.all - stats.survived) / stats.all * 100).toFixed(1) : 0,
         mutations = formatter.formatMutations(fileResult.mutationResults),
         breadcrumb = new IndexHtmlBuilder(baseDir).linkPathItems({
             currentDir: parentDir,
@@ -61,21 +62,24 @@ function writeReport(fileResult, formatter, formattedSourceLines, baseDir) {
             linkDirectoryOnly: true
         });
 
-    _.forEach(formattedSourceLines, function (line) {
-        formattedSource = formattedSource.concat('<li>', line, '</li>');
+    var file = Templates.fileTemplate({
+        sourceLines: formattedSourceLines,
+        mutations: mutations
     });
+
     fs.writeFileSync(
         path.join(baseDir, fileName + ".html"),
-        fileTemplate({
-            style: fs.readFileSync(path.join(__dirname, 'templates/file.css'), 'utf-8'),
-            script: fs.readFileSync(path.join(__dirname, 'templates/file.jsTempl'), 'utf-8'),
-            source: '<ol>' + formattedSource + '</ol>',
-            mutations: mutations,
-            breadcrumb: breadcrumb,
+        Templates.baseTemplate({
+            style: Templates.baseStyleTemplate({ additionalStyle: Templates.fileStyleCode }),
+            script: Templates.baseScriptTemplate({ additionalScript: Templates.fileScriptCode }),
+            fileName: path.basename(fileName),
             stats: stats,
-            coverage: coverage,
-            coverageStatus: coverage > this._successThreshold ? 'killed' : 'survived'
-        }));
+            status: stats.successRate > this._config.successThreshold ? 'killed' : stats.all > 0 ? 'survived' : 'neutral',
+            breadcrumb: breadcrumb,
+            generatedAt: new Date().toLocaleString(),
+            content: file
+        })
+    );
 }
 
 function getRelativeDistance(baseDir, currentDir) {
