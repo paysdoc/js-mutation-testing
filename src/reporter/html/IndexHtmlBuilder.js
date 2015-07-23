@@ -10,7 +10,7 @@ var _ = require('lodash'),
     fs = require('fs'),
     path = require('path');
 
-var IOUtils = require('../../../utils/IOUtils'),
+var IOUtils = require('../../utils/IOUtils'),
     StatUtils = require('./StatUtils'),
     Templates = require('./Templates');
 

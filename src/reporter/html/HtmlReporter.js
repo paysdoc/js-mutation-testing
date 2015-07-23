@@ -9,7 +9,7 @@
 
 var FileHtmlBuilder = require("./FileHtmlBuilder"),
     IndexHtmlBuilder = require("./IndexHtmlBuilder"),
-    IOUtils = require("../../../utils/IOUtils"),
+    IOUtils = require("../../utils/IOUtils"),
     fs = require('fs'),
     path = require('path'),
     Q = require('q'),
@@ -37,12 +37,16 @@ var HtmlReporter = function(basePath, config) {
  */
 HtmlReporter.prototype.create = function(results) {
     var self = this;
-    return Q.Promise(function (resolve) {
+    return Q.Promise(function (resolve, reject) {
         _.forEach(results, function(result){
             IOUtils.createPathIfNotExists(IOUtils.getDirectoryList(result.fileName, true), self._basePath);
         }, this);
         new FileHtmlBuilder(self._config).createFileReports(results, self._basePath).then(function() {
-            self._createDirectoryIndexes(results, self._basePath);
+            try {
+                self._createDirectoryIndexes(self._basePath);
+            } catch (error) {
+                reject(error);
+            }
             resolve();
         });
     });
@@ -50,12 +54,11 @@ HtmlReporter.prototype.create = function(results) {
 
 /**
  * recursively creates index.html files for all the (sub-)directories
- * @param {object} results mutation results
  * @param {string} baseDir the base directory from which to start generating index files
  * @param {string=} currentDir the current directory
  * @returns {Array} files listed in the index.html
  */
-HtmlReporter.prototype._createDirectoryIndexes = function(results, baseDir, currentDir) {
+HtmlReporter.prototype._createDirectoryIndexes = function(baseDir, currentDir) {
     var self = this,
         dirContents,
         files = [];
@@ -64,14 +67,18 @@ HtmlReporter.prototype._createDirectoryIndexes = function(results, baseDir, curr
         var html = fs.readFileSync(dir + '/' + file, 'utf-8'),
             regex = /data-mutation-stats="(.+?)"/g;
 
-        return JSON.parse(decodeURI(regex.exec(html)[1]));
+        try {
+            return JSON.parse(decodeURI(regex.exec(html)[1]));
+        } catch (e) {
+            throw('Unable to parse stats from file ' + file + ', reason: ' +  e);
+        }
     }
 
     currentDir = currentDir || baseDir;
     dirContents = fs.readdirSync(currentDir);
     _.forEach(dirContents, function(item){
         if (fs.statSync(path.join(currentDir,item)).isDirectory()) {
-            files = _.union(files, self._createDirectoryIndexes(results, baseDir, path.join(currentDir, item)));
+            files = _.union(files, self._createDirectoryIndexes(baseDir, path.join(currentDir, item)));
         } else if (item !== 'index.html') {
             files.push({fileName: path.join(path.relative(baseDir, currentDir), item), stats: retrieveStatsFromFile(currentDir, item)});
         }

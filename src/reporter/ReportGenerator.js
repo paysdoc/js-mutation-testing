@@ -12,7 +12,7 @@ var DEFAULT_DIR = path.join('reports', 'grunt-mutation-testing');
 
 var logger = log4js.getLogger('ReportGenerator');
 
-exports.generate = function(config, results) {
+exports.generate = function(config, results, cb) {
     var dir = config.dir || DEFAULT_DIR,
         report = new HtmlReporter(dir, config);
 
@@ -25,5 +25,5 @@ exports.generate = function(config, results) {
         .catch(function(error) {
             logger.error('Error creating report: %s', error.message || error);
         })
-        .done();
+        .done(cb);
 };
