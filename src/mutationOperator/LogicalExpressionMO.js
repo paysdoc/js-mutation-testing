@@ -17,7 +17,7 @@
         MutationOperator.call(this, subTree);
     }
 
-    LogicalExpressionMO.prototype.execute = function () {
+    LogicalExpressionMO.prototype.apply = function () {
         var mutation;
 
         if (!this._original) {
@@ -29,7 +29,7 @@
         return mutation;
     };
 
-    LogicalExpressionMO.prototype.unExecute = function() {
+    LogicalExpressionMO.prototype.revert = function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };

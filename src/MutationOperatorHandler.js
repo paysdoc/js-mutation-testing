@@ -17,7 +17,7 @@
     MutationOperatorHandler.prototype.applyMutation = function(mutationOperatorSet) {
         var result = [];
         _.forEach(mutationOperatorSet, function(operator) {
-            result.push(operator.execute());
+            result.push(operator.apply());
         });
         this._moStack.push(mutationOperatorSet);
         return result;
@@ -26,7 +26,7 @@
     MutationOperatorHandler.prototype.undo = function() {
         var mutationOperatorSet = this._moStack.pop();
         _.forEach(mutationOperatorSet, function(operator) {
-            operator.unExecute();
+            operator.revert();
         });
     };
 

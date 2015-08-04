@@ -17,7 +17,7 @@
         MutationOperator.call(this, subTree);
     }
 
-    UpdateExpressionMO.prototype.execute = function () {
+    UpdateExpressionMO.prototype.apply = function () {
         var astNode = this._astNode,
             replacement = updateOperatorReplacements[astNode.operator],
             mutation;
@@ -41,7 +41,7 @@
         return mutation;
     };
 
-    UpdateExpressionMO.prototype.unExecute = function() {
+    UpdateExpressionMO.prototype.revert = function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };

@@ -20,7 +20,7 @@
         MutationOperator.call(this, subTree);
     }
 
-    ArithmeticOperatorMO.prototype.execute = function () {
+    ArithmeticOperatorMO.prototype.apply = function () {
         var mutation = null;
 
         if (!this._original) {
@@ -31,7 +31,7 @@
         return mutation;
     };
 
-    ArithmeticOperatorMO.prototype.unExecute = function () {
+    ArithmeticOperatorMO.prototype.revert = function () {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };

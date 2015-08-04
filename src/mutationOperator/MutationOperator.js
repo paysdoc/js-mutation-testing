@@ -16,7 +16,7 @@
         this._astNode = body && _.isArray(body) ? body : astNode;
     }
 
-    MutationOperator.prototype.execute = MutationOperator.prototype.unExecute = function () {};
+    MutationOperator.prototype.apply = MutationOperator.prototype.revert = function () {};
 
     module.exports.create = function() {return [];}; //we probably won't use this, but to be sure...
     module.exports = MutationOperator;

@@ -15,7 +15,7 @@
         MutationOperator.call(this, subTree);
     }
 
-    UnaryExpressionMO.prototype.execute = function () {
+    UnaryExpressionMO.prototype.apply = function () {
         var mutation;
 
         if (!this._original) {
@@ -27,7 +27,7 @@
         return mutation;
     };
 
-    UnaryExpressionMO.prototype.unExecute=  function() {
+    UnaryExpressionMO.prototype.revert=  function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };

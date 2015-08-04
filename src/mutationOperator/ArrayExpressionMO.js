@@ -14,7 +14,7 @@
         this._index = index;
     }
 
-    ArrayExpressionMO.prototype.execute = function () {
+    ArrayExpressionMO.prototype.apply = function () {
         var elements = this._astNode.elements,
             mutation;
 
@@ -25,7 +25,7 @@
         return mutation;
     };
 
-    ArrayExpressionMO.prototype.unExecute = function() {
+    ArrayExpressionMO.prototype.revert = function() {
         if (this._original) {
             this._astNode.elements.splice(this._index, 0, this._original);
         }

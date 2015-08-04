@@ -25,7 +25,7 @@
         this._replacement = replacement;
     }
 
-    CallExpressionPropertyMO.prototype.execute = function() {
+    CallExpressionPropertyMO.prototype.apply = function() {
         var executor = executors[this._mutatee];
         
         if (executor && !this._original) {
@@ -33,7 +33,7 @@
         } 
     };
 
-    CallExpressionPropertyMO.prototype.unExecute = function() {
+    CallExpressionPropertyMO.prototype.revert = function() {
         var executor = executors[this._mutatee];
         if (this._original && executor) {
             executor[1](this);

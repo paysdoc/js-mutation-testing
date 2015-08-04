@@ -21,7 +21,7 @@
         this._original = replacement;
     }
 
-    ComparisonOperatorMO.prototype.execute = function () {
+    ComparisonOperatorMO.prototype.apply = function () {
         var mutation;
 
         if (!this._original) {
@@ -32,7 +32,7 @@
         return mutation;
     };
 
-    ComparisonOperatorMO.prototype.unExecute = function() {
+    ComparisonOperatorMO.prototype.revert = function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };

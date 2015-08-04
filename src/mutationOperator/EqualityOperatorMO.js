@@ -21,7 +21,7 @@
         this._original = replacement;
     }
 
-    EqualityOperatorMO.prototype.execute = function () {
+    EqualityOperatorMO.prototype.apply = function () {
         var mutation;
 
         if (!this._original) {
@@ -32,7 +32,7 @@
         return mutation;
     };
 
-    EqualityOperatorMO.prototype.unExecute = function() {
+    EqualityOperatorMO.prototype.revert = function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };

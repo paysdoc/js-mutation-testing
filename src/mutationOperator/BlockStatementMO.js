@@ -14,7 +14,7 @@
         this._index = index;
     }
 
-    BlockStatementMO.prototype.execute = function () {
+    BlockStatementMO.prototype.apply = function () {
         var astNode = this._astNode,
             mutation;
 
@@ -26,7 +26,7 @@
         return mutation;
     };
 
-    BlockStatementMO.prototype.unExecute = function() {
+    BlockStatementMO.prototype.revert = function() {
         if (this._original) {
             this._astNode.splice(this._index, 0, this._original);
         }

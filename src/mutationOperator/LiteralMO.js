@@ -13,7 +13,7 @@
         MutationOperator.call(this, subTree);
     }
 
-    LiteralMO.prototype.execute = function () {
+    LiteralMO.prototype.apply = function () {
         var value = this._astNode.value,
             replacement, mutation;
 
@@ -29,7 +29,7 @@
         return mutation;
     };
 
-    LiteralMO.prototype.unExecute = function() {
+    LiteralMO.prototype.revert = function() {
         this._astNode.value = this._original || this._astNode.value;
         this._original = null;
     };
