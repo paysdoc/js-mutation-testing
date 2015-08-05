@@ -36,7 +36,7 @@
     module.exports.create = function(subTree) {
         var mos = [];
 
-        _.forEach(subTree.elements, function(element, i) {
+        _.forEach(subTree.node.elements, function(element, i) {
             mos.push(new ArrayExpressionMO(subTree, i));
         });
 

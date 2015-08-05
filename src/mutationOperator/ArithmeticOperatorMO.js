@@ -38,6 +38,6 @@
 
     module.exports.code = 'MATH';
     module.exports.create = function(subTree) {
-        return operators.hasOwnProperty(subTree.operator) ? [new ArithmeticOperatorMO(subTree)] : [];
+        return operators.hasOwnProperty(subTree.node.operator) ? [new ArithmeticOperatorMO(subTree)] : [];
     };
 })(module);
