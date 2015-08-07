@@ -3,7 +3,7 @@
  * @author Martin Koster [paysdoc@gmail.com], created on 04/08/15.
  * Licensed under the MIT license.
  */
-describe('ArithmeticOperatorMO', function() {
+describe('ArrayExpressionMO', function() {
     var proxyquire = require('proxyquire'),
         ArrayExpressionMO,
         MutationUtilsSpy,
@@ -31,11 +31,9 @@ describe('ArithmeticOperatorMO', function() {
 
         instance.apply();
         expect(node.elements).toEqual([{foo: 'foo'}, ['baz']]);
-        expect(MutationUtilsSpy.createAstArrayElementDeletionMutation.calls.count()).toEqual(1);
 
         instance.apply(); //applying again should have no effect: it will not increase the call count of the spy
         expect(node.elements).toEqual([{foo: 'foo'}, ['baz']]);
-        expect(MutationUtilsSpy.createAstArrayElementDeletionMutation.calls.count()).toEqual(1);
 
         node.someStuff = 'otherStuff';
         instance.revert();
@@ -44,5 +42,8 @@ describe('ArithmeticOperatorMO', function() {
 
         instance.revert(); //reverting again should have no effect
         expect(node.elements).toEqual([{foo: 'foo'}, 'bar', ['baz']]);
+
+        expect(MutationUtilsSpy.createAstArrayElementDeletionMutation.calls.count()).toEqual(1);
+        expect(MutationUtilsSpy.createAstArrayElementDeletionMutation).toHaveBeenCalledWith([{foo: 'foo'}, 'bar', ['baz']], 1);
     });
 });

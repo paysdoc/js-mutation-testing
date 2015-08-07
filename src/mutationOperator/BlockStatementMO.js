@@ -20,7 +20,7 @@
 
         if (!this._original) {
             this._original = astNode.splice(this._index, 1)[0];
-            mutation = MutationUtils.createMutation(astNode, astNode.range[1], this._original);
+            mutation = MutationUtils.createMutation(this._original, this._original.range[1], this._original);
         }
 
         return mutation;
@@ -34,9 +34,10 @@
     };
 
     module.exports.create = function(subTree) {
-        var mos = [];
+        var mos = [],
+            nodeBody = subTree.node.body || [];
 
-        _.forEach(this._astNode, function (childNode, i) {
+        _.forEach(nodeBody, function (childNode, i) {
             mos.push(new BlockStatementMO(subTree, i));
         });
 
