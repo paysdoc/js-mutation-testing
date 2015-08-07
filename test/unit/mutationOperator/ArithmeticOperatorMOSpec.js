@@ -31,7 +31,7 @@ describe('ArithmeticOperatorMO', function() {
 
         instance.apply();
         expect(node.operator).toEqual('/');
-        expect(MutationUtilsSpy.createOperatorMutation.calls.count()).toEqual(1);
+        expect(MutationUtilsSpy.createOperatorMutation).toHaveBeenCalledWith({ operator: '/', someStuff: 'someStuff' }, '/', '*');
 
         instance.apply(); //applying again should have no effect: it will not increase the call count of the spy
         expect(node.operator).toEqual('/');
