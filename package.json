@@ -1,20 +1,14 @@
 {
-  "name": "JS-mutation-testing",
-  "version": "0.0.1",
+  "name": "js-mutation-testing",
+  "version": "0.0.0",
   "description": "JavaScript Mutation Testing. Tests your tests by mutating the code.",
   "repository": {
     "type": "git",
     "url": "https://github.com/paysdoc/JS-mutation-testing.git"
   },
-  "author": {
-    "name": "Martin Koster",
-    "url": "https://github.com/paysdoc"
-  },
+  "author": "Martin Koster (https://github.com/paysdoc)",
   "contributors": [
-    {
-      "name": "Jimi van der Woning",
-      "url": "https://github.com/jimivdw"
-    }
+    "Jimi van der Woning (https://github.com/jimivdw)"
   ],
   "keywords": [
     "jsmutationtest",
@@ -56,5 +50,11 @@
     "sync-exec": "~0.5.0",
     "temp": "^0.8.1",
     "xml2js": "^0.4.8"
+  },
+  "bugs": {
+    "url": "https://github.com/paysdoc/JS-mutation-testing/issues"
+  },
+  "directories": {
+    "test": "test"
   }
 }
