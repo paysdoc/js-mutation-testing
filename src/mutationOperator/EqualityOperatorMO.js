@@ -10,15 +10,15 @@
     var MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils'),
         operators = {
-            '===': {boundary: '==', negation: '!=='},
-            '==': {boundary: '===', negation: '!='},
-            '!==': {boundary: '!=', negation: '==='},
-            '!=': {boundary: '!==', negation: '=='}
+            '===': '!==',
+            '==': '!=',
+            '!==': '===',
+            '!=': '=='
         };
 
     function EqualityOperatorMO (subTree, replacement) {
         MutationOperator.call(this, subTree);
-        this._original = replacement;
+        this._replacement = replacement;
     }
 
     EqualityOperatorMO.prototype.apply = function () {
@@ -26,8 +26,8 @@
 
         if (!this._original) {
             this._original = this._astNode.operator;
-            this._astNode.operator = this._original;
-            mutation = MutationUtils.createOperatorMutation(this._astNode, this._original);
+            this._astNode.operator = this._replacement;
+            mutation = MutationUtils.createOperatorMutation(this._astNode, this._original, this._replacement);
         }
         return mutation;
     };
@@ -38,19 +38,9 @@
     };
 
     module.exports.create = function(subTree) {
-        if (operators.hasOwnProperty(this._astNode.operator)) {
-            var boundaryOperator = operators[this._astNode.operator].boundary;
-            var negationOperator = operators[this._astNode.operator].negation;
-
-            if (!!boundaryOperator) {
-                return new EqualityOperatorMO(subTree, boundaryOperator);
-            }
-
-            if (!!negationOperator) {
-                return new EqualityOperatorMO(subTree, negationOperator);
-            }
-        }
+        return operators.hasOwnProperty(subTree.node.operator) ? [new EqualityOperatorMO(subTree, operators[subTree.node.operator])] : [];
     };
+
     module.exports.code = 'EQUALITY';
     module.exports.exclude = true;
 })(module);
