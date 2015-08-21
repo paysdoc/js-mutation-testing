@@ -18,7 +18,7 @@
 
     function ComparisonOperatorMO (subTree, replacement) {
         MutationOperator.call(this, subTree);
-        this._original = replacement;
+        this._replacement = replacement;
     }
 
     ComparisonOperatorMO.prototype.apply = function () {
@@ -26,8 +26,8 @@
 
         if (!this._original) {
             this._original = this._astNode.operator;
-            this._astNode.operator = this._original;
-            mutation = MutationUtils.createOperatorMutation(this._astNode, this._original);
+            this._astNode.operator = this._replacement;
+            mutation = MutationUtils.createOperatorMutation(this._astNode, this._original, this._replacement);
         }
         return mutation;
     };
@@ -39,17 +39,9 @@
 
     module.exports.create = function(subTree) {
         var mos = [];
-        if (operators.hasOwnProperty(this._astNode.operator)) {
-            var boundaryOperator = operators[this._astNode.operator].boundary;
-            var negationOperator = operators[this._astNode.operator].negation;
-
-            if (!!boundaryOperator) {
-                mos.push(new ComparisonOperatorMO(subTree, boundaryOperator));
-            }
-
-            if (!!negationOperator) {
-                mos.push(new ComparisonOperatorMO(subTree, negationOperator));
-            }
+        if (operators.hasOwnProperty(subTree.node.operator)) {
+            mos.push(new ComparisonOperatorMO(subTree, operators[subTree.node.operator].boundary));
+            mos.push(new ComparisonOperatorMO(subTree, operators[subTree.node.operator].negation));
         }
         return mos;
     };
