@@ -13,7 +13,7 @@ var createMutation = function (astNode, endOffset, original, replacement) {
         end: endOffset,
         line: astNode.loc.start.line,
         col: astNode.loc.start.column,
-        original: _.isObject(original) ? JSParserWrapper.generate(original) : original,
+        original: _.isObject(original) ? JSParserWrapper.stringify(original) : original,
         replacement: replacement
     };
 };
