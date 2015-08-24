@@ -35,11 +35,11 @@
     };
 
     module.exports.create = function(subTree){
-        var properties = subTree.properties,
+        var properties = subTree.node.properties,
             mos = [];
 
         _.forEach(properties, function(property, i) {
-            if (property.kind = 'init') {
+            if (property.kind === 'init') {
                 mos.push(new ObjectMO(subTree, i));
             }
         });
