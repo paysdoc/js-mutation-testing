@@ -35,7 +35,7 @@
     };
 
     module.exports.create = function(subTree){
-        return operators.hasOwnProperty(this._astNode.operator) ? [new LogicalExpressionMO(subTree)] : [];
+        return operators.hasOwnProperty(subTree.node.operator) ? [new LogicalExpressionMO(subTree)] : [];
     };
     module.exports.code = 'LOGICAL_EXPRESSION';
 })(module);
