@@ -1,6 +1,7 @@
 /**
  * This command creates mutations on logical operators.
  *
+ * TODO: What about '!'?
  * Created by Merlin Weemaes on 2/24/15.
  */
 (function(module) {

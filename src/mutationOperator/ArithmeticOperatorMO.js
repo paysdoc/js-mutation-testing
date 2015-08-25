@@ -2,6 +2,8 @@
  * This command creates mutations on a given arithmetic operator.
  * Each operator will be mutated to it's opposite
  * Created by Martin Koster on 2/11/15.
+ *
+ * TODO: We'll have to add a mutation operator for bitwise operators
  */
 (function(module) {
     'use strict';

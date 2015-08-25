@@ -46,9 +46,9 @@
         this._original = null;
     };
 
-    module.exports.create = function(astNode) {
-        if (updateOperatorReplacements.hasOwnProperty(astNode.operator)) {
-            return [new UpdateExpressionMO(astNode)];
+    module.exports.create = function(subTree) {
+        if (updateOperatorReplacements.hasOwnProperty(subTree.node.operator)) {
+            return [new UpdateExpressionMO(subTree)];
         } else {
             return [];
         }
