@@ -27,11 +27,11 @@ describe('EqualityOperatorMO', function() {
         EqualityOperatorMO = proxyquire('../../../src/mutationOperator/EqualityOperatorMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = EqualityOperatorMO.create({node: node});
+        instances = EqualityOperatorMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = EqualityOperatorMO.create({node: {}});
+        instances = EqualityOperatorMO.create({});
         expect(instances.length).toEqual(0);
     });
 

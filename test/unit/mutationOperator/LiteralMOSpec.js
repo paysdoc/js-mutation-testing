@@ -23,7 +23,7 @@ describe('LiteralMO', function() {
         });
 
         node = {type: "Literal", value: "a", raw: "'a'", range: [5,7]};
-        mos = LiteralMO.create({node: node});
+        mos = LiteralMO.create(node);
     });
 
     it('mutates a node and reverts it without affecting other parts of that node', function() {

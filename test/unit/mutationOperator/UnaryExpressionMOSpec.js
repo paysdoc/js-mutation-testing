@@ -26,12 +26,12 @@ describe('UnaryExpressionMO', function() {
     });
 
     it('creates an empty list of mutation operators', function() {
-        var instances = UnaryExpressionMO.create({node: {properties: ['a', 'b']}});
+        var instances = UnaryExpressionMO.create({properties: ['a', 'b']});
         expect(instances.length).toEqual(0);
     });
 
     it('mutates a node and reverts it without affecting other parts of that node', function() {
-        var instances = UnaryExpressionMO.create({node: node}),
+        var instances = UnaryExpressionMO.create(node),
             instance;
 
         expect(instances.length).toEqual(1);

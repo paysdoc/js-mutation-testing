@@ -15,11 +15,11 @@ describe('ArithmeticOperatorMO', function() {
         ArithmeticOperatorMO = proxyquire('../../../src/mutationOperator/ArithmeticOperatorMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = ArithmeticOperatorMO.create({node: node});
+        instances = ArithmeticOperatorMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = ArithmeticOperatorMO.create({node: {}});
+        instances = ArithmeticOperatorMO.create({});
         expect(instances.length).toEqual(0);
     });
 

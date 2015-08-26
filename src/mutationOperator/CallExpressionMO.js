@@ -17,8 +17,8 @@
         'self' : [mutateSelf, restoreSelf]
     };
 
-    function CallExpressionPropertyMO (subTree, mutatee, replacement, index) {
-        MutationOperator.call(this, subTree);
+    function CallExpressionPropertyMO (astNode, mutatee, replacement, index) {
+        MutationOperator.call(this, astNode);
         this._index = index;
         this._mutatee = mutatee;
         this._replacement = replacement;
@@ -83,27 +83,27 @@
         });
     }
 
-    module.exports.create = function(subTree) {
-        var args = subTree.node.arguments,
+    module.exports.create = function(astNode) {
+        var args = astNode.arguments,
             replacement,
             mos = [];
 
         _.forEach(args, function(arg, i) {
             replacement = LiteralUtils.determineReplacement(arg.value);
             if (arg.type === 'Literal' && !!replacement) {
-                mos.push(new CallExpressionPropertyMO(subTree, 'arguments', replacement, i));
+                mos.push(new CallExpressionPropertyMO(astNode, 'arguments', replacement, i));
                 // we have found a literal mutation for given argument, so we don't need to mutate more
                 return mos;
             }
-            mos.push(new CallExpressionPropertyMO(subTree, 'arguments', {type: 'Literal', value: 'MUTATION!', raw:'\'MUTATION!\''}, i));
+            mos.push(new CallExpressionPropertyMO(astNode, 'arguments', {type: 'Literal', value: 'MUTATION!', raw:'\'MUTATION!\''}, i));
         });
 
         if (args.length === 1) {
-            mos.push(new CallExpressionPropertyMO(subTree, 'self', args[0]));
+            mos.push(new CallExpressionPropertyMO(astNode, 'self', args[0]));
         }
 
-        if (subTree.node.callee.type === 'MemberExpression') {
-            mos.push(new CallExpressionPropertyMO(subTree, 'self', subTree.node.callee.object));
+        if (astNode.callee.type === 'MemberExpression') {
+            mos.push(new CallExpressionPropertyMO(astNode, 'self', astNode.callee.object));
         }
 
         return mos;

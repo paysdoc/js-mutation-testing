@@ -30,11 +30,11 @@ describe('LogicalExpressionMO', function() {
         LogicalExpressionMO = proxyquire('../../../src/mutationOperator/LogicalExpressionMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = LogicalExpressionMO.create({node: node});
+        instances = LogicalExpressionMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = LogicalExpressionMO.create({node: {}});
+        instances = LogicalExpressionMO.create({});
         expect(instances.length).toEqual(0);
     });
 

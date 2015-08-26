@@ -9,8 +9,8 @@
         MutationUtils = require('../utils/MutationUtils'),
         MutationOperator = require('./MutationOperator');
 
-    function ArrayExpressionMO (subTree, index) {
-        MutationOperator.call(this, subTree);
+    function ArrayExpressionMO (astNode, index) {
+        MutationOperator.call(this, astNode);
         this._index = index;
     }
 
@@ -33,11 +33,11 @@
     };
 
     module.exports.code = 'ARRAY';
-    module.exports.create = function(subTree) {
+    module.exports.create = function(astNode) {
         var mos = [];
 
-        _.forEach(subTree.node.elements, function(element, i) {
-            mos.push(new ArrayExpressionMO(subTree, i));
+        _.forEach(astNode.elements, function(element, i) {
+            mos.push(new ArrayExpressionMO(astNode, i));
         });
 
         return mos;

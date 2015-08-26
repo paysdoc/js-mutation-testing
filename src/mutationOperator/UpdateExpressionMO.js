@@ -13,8 +13,8 @@
             '--': '++'
         };
 
-    function UpdateExpressionMO (subTree) {
-        MutationOperator.call(this, subTree);
+    function UpdateExpressionMO (astNode) {
+        MutationOperator.call(this, astNode);
     }
 
     UpdateExpressionMO.prototype.apply = function () {
@@ -46,9 +46,9 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree) {
-        if (updateOperatorReplacements.hasOwnProperty(subTree.node.operator)) {
-            return [new UpdateExpressionMO(subTree)];
+    module.exports.create = function(astNode) {
+        if (updateOperatorReplacements.hasOwnProperty(astNode.operator)) {
+            return [new UpdateExpressionMO(astNode)];
         } else {
             return [];
         }

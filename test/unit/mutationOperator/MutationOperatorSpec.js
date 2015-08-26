@@ -7,7 +7,8 @@ describe('MutationOperator', function() {
     var MutationOperator = require('../../../src/mutationOperator/MutationOperator');
 
     it('creates a mutation operator with a private _astNode attribute', function() {
-        var instance = new MutationOperator({node:{}});
-        expect(instance._astNode).toEqual({});
+        var node = {someProp: 'someProp'},
+            instance = new MutationOperator(node);
+        expect(instance._astNode).toEqual(node);
     });
 });

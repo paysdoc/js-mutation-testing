@@ -9,8 +9,8 @@
         MutationUtils = require('../utils/MutationUtils'),
         MutationOperator = require('./MutationOperator');
 
-    function BlockStatementMO (subTree, index) {
-        MutationOperator.call(this, subTree);
+    function BlockStatementMO (astNode, index) {
+        MutationOperator.call(this, astNode);
         this._index = index;
     }
 
@@ -33,12 +33,12 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree) {
+    module.exports.create = function(astNode) {
         var mos = [],
-            nodeBody = subTree.node.body || [];
+            nodeBody = astNode.body || [];
 
         _.forEach(nodeBody, function (childNode, i) {
-            mos.push(new BlockStatementMO(subTree, i));
+            mos.push(new BlockStatementMO(astNode, i));
         });
 
         return mos;

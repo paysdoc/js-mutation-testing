@@ -15,11 +15,11 @@ describe('BlockStatementMO', function() {
         BlockStatementMO = proxyquire('../../../src/mutationOperator/BlockStatementMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = BlockStatementMO.create({node: node});
+        instances = BlockStatementMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = BlockStatementMO.create({node: {}});
+        instances = BlockStatementMO.create({});
         expect(instances.length).toEqual(0);
     });
 

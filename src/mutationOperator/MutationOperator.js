@@ -7,9 +7,8 @@
 
     var _ = require('lodash');
 
-    function MutationOperator(subTree) {
-        var astNode = subTree.node,
-            body = astNode.body;
+    function MutationOperator(astNode) {
+        var body = astNode.body;
 
         /* while selecting a command requires the node, the actual processing may
          * in some cases require the body of the node, which is itself a node */

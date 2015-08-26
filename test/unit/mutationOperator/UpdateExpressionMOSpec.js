@@ -29,7 +29,7 @@ describe('UpdateExpressionMO', function() {
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = UpdateExpressionMO.create({node: {}});
+        instances = UpdateExpressionMO.create({});
         expect(instances.length).toEqual(0);
     });
 
@@ -43,7 +43,7 @@ describe('UpdateExpressionMO', function() {
     });
 
     function testUpdateExpressionMO(replacement) {
-        var instances = UpdateExpressionMO.create({node: node});
+        var instances = UpdateExpressionMO.create(node);
         expect(instances.length).toEqual(1);
 
         instances[0].apply();

@@ -16,8 +16,8 @@
             '!=': '=='
         };
 
-    function EqualityOperatorMO (subTree, replacement) {
-        MutationOperator.call(this, subTree);
+    function EqualityOperatorMO (astNode, replacement) {
+        MutationOperator.call(this, astNode);
         this._replacement = replacement;
     }
 
@@ -37,8 +37,8 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree) {
-        return operators.hasOwnProperty(subTree.node.operator) ? [new EqualityOperatorMO(subTree, operators[subTree.node.operator])] : [];
+    module.exports.create = function(astNode) {
+        return operators.hasOwnProperty(astNode.operator) ? [new EqualityOperatorMO(astNode, operators[astNode.operator])] : [];
     };
 
     module.exports.code = 'EQUALITY';

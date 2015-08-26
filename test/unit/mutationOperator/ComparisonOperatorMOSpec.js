@@ -27,11 +27,11 @@ describe('ComparisonOperatorMO', function() {
         ComparisonOperatorMO = proxyquire('../../../src/mutationOperator/ComparisonOperatorMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = ComparisonOperatorMO.create({node: node});
+        instances = ComparisonOperatorMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = ComparisonOperatorMO.create({node: {}});
+        instances = ComparisonOperatorMO.create({});
         expect(instances.length).toEqual(0);
     });
 

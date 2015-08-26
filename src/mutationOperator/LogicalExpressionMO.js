@@ -14,8 +14,8 @@
             '||': '&&'
         };
 
-    function LogicalExpressionMO(subTree) {
-        MutationOperator.call(this, subTree);
+    function LogicalExpressionMO(astNode) {
+        MutationOperator.call(this, astNode);
     }
 
     LogicalExpressionMO.prototype.apply = function () {
@@ -35,8 +35,8 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree){
-        return operators.hasOwnProperty(subTree.node.operator) ? [new LogicalExpressionMO(subTree)] : [];
+    module.exports.create = function(astNode){
+        return operators.hasOwnProperty(astNode.operator) ? [new LogicalExpressionMO(astNode)] : [];
     };
     module.exports.code = 'LOGICAL_EXPRESSION';
 })(module);

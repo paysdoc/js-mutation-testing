@@ -16,8 +16,8 @@
             '>=': {boundary: '>', negation: '<'}
         };
 
-    function ComparisonOperatorMO (subTree, replacement) {
-        MutationOperator.call(this, subTree);
+    function ComparisonOperatorMO (astNode, replacement) {
+        MutationOperator.call(this, astNode);
         this._replacement = replacement;
     }
 
@@ -37,11 +37,11 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree) {
+    module.exports.create = function(astNode) {
         var mos = [];
-        if (operators.hasOwnProperty(subTree.node.operator)) {
-            mos.push(new ComparisonOperatorMO(subTree, operators[subTree.node.operator].boundary));
-            mos.push(new ComparisonOperatorMO(subTree, operators[subTree.node.operator].negation));
+        if (operators.hasOwnProperty(astNode.operator)) {
+            mos.push(new ComparisonOperatorMO(astNode, operators[astNode.operator].boundary));
+            mos.push(new ComparisonOperatorMO(astNode, operators[astNode.operator].negation));
         }
         return mos;
     };

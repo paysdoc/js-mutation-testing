@@ -15,11 +15,11 @@ describe('ArrayExpressionMO', function() {
         ArrayExpressionMO = proxyquire('../../../src/mutationOperator/ArrayExpressionMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = ArrayExpressionMO.create({node: node});
+        instances = ArrayExpressionMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = ArrayExpressionMO.create({node: {}});
+        instances = ArrayExpressionMO.create({});
         expect(instances.length).toEqual(0);
     });
 

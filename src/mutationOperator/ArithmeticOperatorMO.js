@@ -18,8 +18,8 @@
             '%': '*'
         };
 
-    function ArithmeticOperatorMO(subTree) {
-        MutationOperator.call(this, subTree);
+    function ArithmeticOperatorMO(astNode) {
+        MutationOperator.call(this, astNode);
     }
 
     ArithmeticOperatorMO.prototype.apply = function () {
@@ -39,7 +39,7 @@
     };
 
     module.exports.code = 'MATH';
-    module.exports.create = function(subTree) {
-        return operators.hasOwnProperty(subTree.node.operator) ? [new ArithmeticOperatorMO(subTree)] : [];
+    module.exports.create = function(astNode) {
+        return operators.hasOwnProperty(astNode.operator) ? [new ArithmeticOperatorMO(astNode)] : [];
     };
 })(module);

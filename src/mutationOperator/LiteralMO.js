@@ -9,8 +9,8 @@
         LiteralUtils = require('../utils/LiteralUtils'),
         MutationOperator = require('./MutationOperator');
 
-    function LiteralMO (subTree) {
-        MutationOperator.call(this, subTree);
+    function LiteralMO (astNode) {
+        MutationOperator.call(this, astNode);
     }
 
     LiteralMO.prototype.apply = function () {
@@ -34,8 +34,8 @@
         this._original = null;
     };
 
-    module.exports.create = function(subTree) {
-        return [new LiteralMO(subTree)];
+    module.exports.create = function(astNode) {
+        return [new LiteralMO(astNode)];
     };
     module.exports.code = 'LITERAL';
 })(module);

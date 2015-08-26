@@ -17,11 +17,11 @@ describe('ObjectMO', function() {
         ObjectMO = proxyquire('../../../src/mutationOperator/ObjectMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
-        instances = ObjectMO.create({node: node});
+        instances = ObjectMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = ObjectMO.create({node: {properties: ['a', 'b']}});
+        instances = ObjectMO.create({properties: ['a', 'b']});
         expect(instances.length).toEqual(0);
     });
 

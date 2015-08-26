@@ -123,8 +123,8 @@
             result = {operators: [], excludes: []};
 
         _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
-            if (!excludes[MutationOperator.code]) {
-                Array.prototype.push.apply(result.operators, MutationOperator.create(node));
+            if (!_.find(excludes, MutationOperator.code)) {
+                result.operators.push(MutationOperator.create(node));
             } else {
                 result.excludes.push(MutationOperator.code);
             }
@@ -138,10 +138,10 @@
      * @returns {object} The child node finder
      */
     function selectChildNodeFinder(node) {
-        var registryItem = _.find(registry, function(registryItem) {
+        var matchingItem = _.find(registry, function(registryItem) {
             return !!registryItem.predicate(node);
         });
-        return registryItem ? registryItem.childNodeFinder : null;
+        return !!matchingItem ? matchingItem.childNodeFinder : null;
     }
 
     /**

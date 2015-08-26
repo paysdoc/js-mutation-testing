@@ -20,7 +20,7 @@ describe('CallExpressionMO', function() {
     it('creates no mutation operators for a call expression without arguments', function() {
         var ast = JSParserWrapper.parse('callThis();'),
             callExpression = ast.body[0].expression,
-            mos = CallExpressionMO.create({node: callExpression});
+            mos = CallExpressionMO.create(callExpression);
 
         expect(mos.length).toEqual(0);
     });
@@ -28,7 +28,7 @@ describe('CallExpressionMO', function() {
     it('creates two mutation operators for a call expression with one argument', function() {
         var ast = JSParserWrapper.parse('callThis(a);'),
             callExpression = ast.body[0].expression,
-            mos = CallExpressionMO.create({node: callExpression});
+            mos = CallExpressionMO.create(callExpression);
 
         expect(mos.length).toEqual(2);
 
@@ -42,7 +42,7 @@ describe('CallExpressionMO', function() {
     it('creates 3 mutation operators for a call with one argument to a member of an object', function() {
         var ast = JSParserWrapper.parse('callThis.member(a);'),
             callExpression = ast.body[0].expression,
-            mos = CallExpressionMO.create({node: callExpression});
+            mos = CallExpressionMO.create(callExpression);
 
         expect(mos.length).toEqual(3);
 
@@ -65,7 +65,7 @@ describe('CallExpressionMO', function() {
     it('creates 3 mutation operators for a call with one literal argument to a member of an object', function() {
         var ast = JSParserWrapper.parse('callThis.member(\'a\');'),
             callExpression = ast.body[0].expression,
-            mos = CallExpressionMO.create({node: callExpression});
+            mos = CallExpressionMO.create(callExpression);
 
         var originalProps = {
             "type": "CallExpression",
