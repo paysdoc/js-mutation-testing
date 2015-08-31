@@ -68,14 +68,9 @@
             MutationOperators: [ArrayExpressionMO],
             childNodeFinder: ArrayCNF
         },
-        {// arithmetic expression
-            predicate: function (node) {return node && node.type === 'BinaryExpression' && isArithmeticExpression(node);},
-            MutationOperators: [ArithmeticOperatorMO],
-            childNodeFinder: LeftRightCNF
-        },
-        {// comparison expression
-            predicate: function (node) {return node && node.type === 'BinaryExpression' && !isArithmeticExpression(node);},
-            MutationOperators: [ComparisonOperatorMO, EqualityOperatorMO],
+        {// binary expression
+            predicate: function (node) {return node && node.type === 'BinaryExpression';},
+            MutationOperators: [ArithmeticOperatorMO, ComparisonOperatorMO, EqualityOperatorMO],
             childNodeFinder: LeftRightCNF
         },
         {// update expression: i++
@@ -105,30 +100,28 @@
         }
     ];
 
-    function isArithmeticExpression(node) {
-        return _.indexOf(['+', '-', '*', '/', '%'], node.operator) > -1;
-    }
-
     /**
      * Selectes a set of mutation operators based on the given Abstract Syntax Tree node.
-     * @param {object} node the node for which to return a mutation command
+     * @param {object} subTree the object containing the node for which to return a mutation command
      * @param {object} globalExcludes object containing mutation codes to be excluded across the whole application
      * @returns {object} The mutation operators to be applied for this node
      */
-    function selectMutationOperators(node, globalExcludes) {
-        var excludes = node.excludes || globalExcludes,
+    function selectMutationOperators(subTree, globalExcludes) {
+        var node = subTree.node,
+            excludes = subTree.excludes || globalExcludes,
             registryItem = _.find(registry, function (registryItem) {
                 return !!registryItem.predicate(node);
             }),
             result = {operators: [], excludes: []};
 
         _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
-            if (!_.find(excludes, MutationOperator.code)) {
-                result.operators.push(MutationOperator.create(node));
-            } else {
+            if (_.indexOf(excludes, MutationOperator.code) > -1) {
                 result.excludes.push(MutationOperator.code);
+            } else {
+                result.operators.push(MutationOperator.create(node));
             }
         });
+        result.operators = _.flatten(result.operators);
         return result;
     }
 
@@ -161,6 +154,8 @@
         _.forEach(_.uniq(_.flatten(_.pluck(registry, 'MutationOperators'), true)), function(operator){
             if(operator.code) {
                 excludes[operator.code] = !!operator.exclude;
+            } else {
+                throw new TypeError('expected a MutationOperation class with a code, but code was ' + operator.code);
             }
         });
         return excludes;

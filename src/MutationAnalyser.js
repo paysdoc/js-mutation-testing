@@ -29,13 +29,13 @@
             mutationOperators = this._mutationOperators,
             excludedMutations = this._excludeMutations;
 
-        function analyseNode(subtree) {
-            var astNode = subtree.node,
+        function analyseNode(subTree) {
+            var astNode = subTree.node,
                 selectedMutationOperators,
                 childNodeFinder;
 
             if (astNode) {
-                selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(astNode);
+                selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(subTree);
                 Array.prototype.push.apply(mutationOperators, selectedMutationOperators.operators);
                 Array.prototype.push.apply(excludedMutations, selectedMutationOperators.excludes);
                 childNodeFinder = MutationOperatorRegistry.selectAllChildren(astNode);
