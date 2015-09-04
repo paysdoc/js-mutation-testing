@@ -9,13 +9,14 @@
     var _ = require('lodash'),
         ChildNodeFinder = require('./ChildNodeFinder');
 
-    var ArrayChildNodeFinder = function(astNode) {
-        ChildNodeFinder.call(this, astNode);
+    var ArrayChildNodeFinder = function(astNode, property) {
+        ChildNodeFinder.call(this, astNode, property);
     };
 
     ArrayChildNodeFinder.prototype.find = function() {
-        var childNodes = [];
-        _.each(this._astNode.elements, function (element) {
+        var collection = this._property ? this._astNode[this._property] : this._astNode,
+            childNodes = [];
+        _.each(collection, function (element) {
             childNodes.push(element);
         }, this);
         return childNodes;

@@ -36,42 +36,42 @@
         {// block statement: { var i; var j; }
             predicate: function (node) {return node && node.body && _.isArray(node.body);},
             MutationOperators: [BlockStatementMO],
-            childNodeFinder: ArrayCNF
+            childNodeFinder: {type: ArrayCNF}
         },
         {// while / do ... while loop
             predicate: function (node) {return node && (node.type === 'WhileStatement' || node.type === 'DoWhileStatement');},
             MutationOperators: [],
-            childNodeFinder: IterationCNF
+            childNodeFinder: {type: IterationCNF}
         },
         {// for loop
             predicate: function (node) {return node && node.type === 'ForStatement';},
             MutationOperators: [],
-            childNodeFinder: ForLoopCNF
+            childNodeFinder: {type: ForLoopCNF}
         },
         {// assignment expression: a = 'apple';
             predicate: function (node) {return node && node.type === 'AssignmentExpression';},
             MutationOperators: [],
-            childNodeFinder: ChildNodeFinder
+            childNodeFinder: {type: ChildNodeFinder}
         },
         {// call expression: callingSomeFunction(param1, param2);
             predicate: function (node) {return node && node.type === 'CallExpression';},
             MutationOperators: [CallExpressionMO],
-            childNodeFinder: CallExpressionCNF
+            childNodeFinder: {type: CallExpressionCNF}
         },
         {// object expression: {item1: 'item1'}
             predicate: function (node) {return node && node.type === 'ObjectExpression';},
             MutationOperators: [ObjectMO],
-            childNodeFinder: PropertyCNF
+            childNodeFinder: {type: PropertyCNF}
         },
         {// array expression ['a', 'b', 'c']
             predicate: function (node) {return node && node.type === 'ArrayExpression';},
             MutationOperators: [ArrayExpressionMO],
-            childNodeFinder: ArrayCNF
+            childNodeFinder: {type: ArrayCNF, property: 'element'}
         },
         {// binary expression
             predicate: function (node) {return node && node.type === 'BinaryExpression';},
             MutationOperators: [ArithmeticOperatorMO, ComparisonOperatorMO, EqualityOperatorMO],
-            childNodeFinder: LeftRightCNF
+            childNodeFinder: {type: LeftRightCNF}
         },
         {// update expression: i++
             predicate: function (node) {return node && node.type === 'UpdateExpression';},
@@ -91,12 +91,12 @@
         {// logical expression: a && b
             predicate: function (node) {return node && node.type === 'LogicalExpression';},
             MutationOperators: [LogicalExpressionMO],
-            childNodeFinder: LeftRightCNF
+            childNodeFinder: {type: LeftRightCNF}
         },
         {// default for all AST node objects
             predicate: function (node) {return _.isObject(node);},
             MutationOperators: [],
-            childNodeFinder: ChildNodeFinder
+            childNodeFinder: {type: ChildNodeFinder}
         }
     ];
 
@@ -131,10 +131,12 @@
      * @returns {object} The child node finder
      */
     function selectChildNodeFinder(node) {
-        var matchingItem = _.find(registry, function(registryItem) {
-            return !!registryItem.predicate(node);
-        });
-        return !!matchingItem ? matchingItem.childNodeFinder : null;
+        var matchingItem = _.find(registry, function (registryItem) {
+                return !!registryItem.predicate(node);
+            }),
+            childNodeFinder = matchingItem && matchingItem.childNodeFinder;
+
+        return !!(childNodeFinder) ? new childNodeFinder.type(node, childNodeFinder.property) : null;
     }
 
     /**

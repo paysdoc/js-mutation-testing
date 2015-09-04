@@ -9,11 +9,12 @@
     var _ = require('lodash'),
         ScopeUtils = require('../utils/ScopeUtils');
 
-    var ChildNodeFinder = function(astNode) {
+    var ChildNodeFinder = function(astNode, property) {
         var body = astNode.body;
 
         /* The actual processing may in some cases require the body of the node, which is itself a node */
         this._astNode = body && _.isArray(body) ? body : astNode;
+        this._property = property;
     };
 
     ChildNodeFinder.prototype.find = function() {

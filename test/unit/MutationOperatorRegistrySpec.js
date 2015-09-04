@@ -41,13 +41,13 @@ describe('MutationOperatorRegistry', function() {
             './mutationOperator/LogicalExpressionMO': {code: "LOGICAL_EXPRESSION", create: mockCreate("logical_expression")},
             './mutationOperator/CallExpressionMO': {code: "METHOD_CALL", create: mockCreate("method_call")},
             './mutationOperator/UpdateExpressionMO': {code: "UPDATE_EXPRESSION", create: mockCreate("update_expression")},
-            './childNodeFinder/ArrayCNF': {type: "ArrayCNF"},
-            './childNodeFinder/CallExpressionCNF': {type: "CallExpressionCNF"},
-            './childNodeFinder/ChildNodeFinder': {type: "ChildNodeFinder"},
-            './childNodeFinder/ForLoopCNF': {type: "ForLoopCNF"},
-            './childNodeFinder/IterationCNF': {type: "IterationCNF"},
-            './childNodeFinder/LeftRightCNF': {type: "LeftRightCNF"},
-            './childNodeFinder/PropertyCNF': {type: "PropertyCNF"}
+            './childNodeFinder/ArrayCNF': function() {return {type: "ArrayCNF"}},
+            './childNodeFinder/CallExpressionCNF': function() {return {type: "CallExpressionCNF"}},
+            './childNodeFinder/ChildNodeFinder': function() {return {type: "ChildNodeFinder"}},
+            './childNodeFinder/ForLoopCNF': function() {return {type: "ForLoopCNF"}},
+            './childNodeFinder/IterationCNF': function() {return {type: "IterationCNF"}},
+            './childNodeFinder/LeftRightCNF': function() {return {type: "LeftRightCNF"}},
+            './childNodeFinder/PropertyCNF': function() {return {type: "PropertyCNF"}}
         });
     });
 

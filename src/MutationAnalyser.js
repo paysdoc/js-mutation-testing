@@ -14,7 +14,6 @@
     function Mutator(ast) {
         this._ast = ast;
         this._mutationOperators = [];
-        this._excludedOperators = [];
     }
 
     /**
@@ -24,10 +23,8 @@
      */
     Mutator.prototype.collectMutations = function(excludeMutations) {
         var self = this,
-            tree = {node: self._ast},
-            globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations),
-            mutationOperators = this._mutationOperators,
-            excludedMutations = this._excludeMutations;
+            tree = {node: this._ast},
+            globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations);
 
         function analyseNode(subTree) {
             var astNode = subTree.node,
@@ -36,9 +33,8 @@
 
             if (astNode) {
                 selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(subTree);
-                Array.prototype.push.apply(mutationOperators, selectedMutationOperators.operators);
-                Array.prototype.push.apply(excludedMutations, selectedMutationOperators.excludes);
-                childNodeFinder = MutationOperatorRegistry.selectAllChildren(astNode);
+                Array.prototype.push.apply(self._mutationOperators, selectedMutationOperators.operators);
+                childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
             }
             if (childNodeFinder) {
                 _.forEach(childNodeFinder.find(), function (childNode) {
@@ -50,16 +46,12 @@
             }
         }
 
-        if (!(mutationOperators && mutationOperators.length)) {
+        if (!(this._mutationOperators && this._mutationOperators.length)) {
             tree.excludes = _.merge({}, globalExcludes, ExclusionUtils.getExclusions(tree.node)); // add top-level local excludes
             analyseNode(tree);
         }
 
-        return mutationOperators;
-    };
-
-    Mutator.prototype.getExcludedMutations = function() {
-        return this._excludedOperators;
+        return this._mutationOperators;
     };
 
     module.exports = Mutator;

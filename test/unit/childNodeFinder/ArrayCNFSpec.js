@@ -10,6 +10,6 @@ describe("ArrayCNF", function(){
     it("finds the right child node on a given array node", function() {
         var node = {"type": "ArrayExpression",
             "elements": ["elem1","elem2",{"type": "BinaryExpression", "operator": "*"}]};
-        expect(new ArrayCNF(node).find()).toEqual([ 'elem1', 'elem2', { type: 'BinaryExpression', operator: '*' }]);
+        expect(new ArrayCNF(node, 'elements').find()).toEqual([ 'elem1', 'elem2', { type: 'BinaryExpression', operator: '*' }]);
     });
 });

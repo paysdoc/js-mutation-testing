@@ -6,7 +6,7 @@
 (function(module) {
     'use strict';
 
-    var _ = require('lodash'),
+    var ArrayCNF = require('./ArrayCNF'),
         ChildNodeFinder = require('./ChildNodeFinder');
 
     var CallExpressionChildNodeFinder = function(astNode) {
@@ -14,13 +14,7 @@
     };
 
     CallExpressionChildNodeFinder.prototype.find = function() {
-        var childNodes = [];
-
-        _.forEach(this._astNode['arguments'], function(arg) {
-            childNodes.push(arg);
-        }, this);
-        childNodes.push(this._astNode.callee);
-        return childNodes;
+        return new ArrayCNF(this._astNode, 'arguments').find().concat([this._astNode.callee]);
     };
 
     module.exports = CallExpressionChildNodeFinder;
