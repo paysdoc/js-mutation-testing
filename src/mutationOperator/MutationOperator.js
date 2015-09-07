@@ -15,5 +15,9 @@
         this._astNode = body && _.isArray(body) ? body : astNode;
     }
 
+    MutationOperator.prototype.getReplacement = function() {
+        return null;
+    };
+
     module.exports = MutationOperator;
 })(module);

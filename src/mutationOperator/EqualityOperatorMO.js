@@ -37,6 +37,10 @@
         this._original = null;
     };
 
+    EqualityOperatorMO.prototype.getReplacement = function() {
+        return this._replacement;
+    };
+
     module.exports.create = function(astNode) {
         return operators.hasOwnProperty(astNode.operator) ? [new EqualityOperatorMO(astNode, operators[astNode.operator])] : [];
     };

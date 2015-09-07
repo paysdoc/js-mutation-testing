@@ -35,6 +35,10 @@
         this._original = null;
     };
 
+    LogicalExpressionMO.prototype.getReplacement = function() {
+        return operators[this._original ? this._original : this._astNode.operator];
+    };
+
     module.exports.create = function(astNode){
         return operators.hasOwnProperty(astNode.operator) ? [new LogicalExpressionMO(astNode)] : [];
     };

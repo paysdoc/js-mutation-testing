@@ -23,10 +23,10 @@ describe('LiteralMO', function() {
         });
 
         node = {type: "Literal", value: "a", raw: "'a'", range: [5,7]};
-        mos = LiteralMO.create(node);
     });
 
     it('mutates a node and reverts it without affecting other parts of that node', function() {
+        mos = LiteralMO.create(node);
         expect(mos.length).toEqual(1);
 
         mos[0].apply();
@@ -43,6 +43,7 @@ describe('LiteralMO', function() {
 
     it('doesn\'t mutate a node if no valid replacement can be found', function() {
         shouldReturnAValue = false;
+        mos = LiteralMO.create(node);
         mos[0].apply(); // should do nothing
         expect(node.value).toEqual('a');
         expect(determineReplacementSpy.calls.count()).toEqual(1);

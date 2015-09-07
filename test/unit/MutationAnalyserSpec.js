@@ -9,7 +9,7 @@ describe('MutationAnalyser', function() {
         BlockStatementMO = require('../../src/mutationOperator/BlockStatementMO'),
         ArithmeticOperatorMO = require('../../src/mutationOperator/ArithmeticOperatorMO'),
         LiteralMO = require('../../src/mutationOperator/LiteralMO'),
-        mutationAnalyser, ExclusionsSpy, selectMutationOperatorsSpy, selectChildNodeFinderSpy;
+        mutationAnalyser, ExclusionsSpy, MutationConfigurationSpy, selectMutationOperatorsSpy, selectChildNodeFinderSpy;
 
     var ast = {
         "type": "Program",
@@ -53,13 +53,14 @@ describe('MutationAnalyser', function() {
         jasmine.addMatchers(require('../util/JasmineCustomMatchers'));
 
         ExclusionsSpy = jasmine.createSpyObj('ExclusionUtils', ['getExclusions']);
+        MutationConfigurationSpy = jasmine.createSpyObj('MutationConfiguration', ['isInIgnoredRange', 'isReplacementIgnored']);
         selectMutationOperatorsSpy = spyOn(MutationOperatorRegistry, 'selectMutationOperators').and.callThrough();
         selectChildNodeFinderSpy = spyOn(MutationOperatorRegistry, 'selectChildNodeFinder').and.callThrough();
         MutationAnalyser = proxyquire('../../src/MutationAnalyser', {
             './utils/ExclusionUtils': ExclusionsSpy,
             './MutationOperatorRegistry': MutationOperatorRegistry
         });
-        mutationAnalyser = new MutationAnalyser(ast);
+        mutationAnalyser = new MutationAnalyser(ast, MutationConfigurationSpy);
     });
 
     it('finds all eligible mutation operators in the given AST', function() {

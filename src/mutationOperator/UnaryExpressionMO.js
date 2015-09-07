@@ -32,6 +32,10 @@
         this._original = null;
     };
 
+    UnaryExpressionMO.prototype.getReplacement = function() {
+        return null;
+    };
+
     module.exports.create = function(astNode) {
         return astNode.operator ? [new UnaryExpressionMO(astNode)] : [];
     };

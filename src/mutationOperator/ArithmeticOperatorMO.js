@@ -38,6 +38,10 @@
         this._original = null;
     };
 
+    ArithmeticOperatorMO.prototype.getReplacement = function() {
+        return operators[this._original ? this._original : this._astNode.operator];
+    };
+
     module.exports.code = 'MATH';
     module.exports.create = function(astNode) {
         return operators.hasOwnProperty(astNode.operator) ? [new ArithmeticOperatorMO(astNode)] : [];

@@ -104,24 +104,29 @@
      * Selectes a set of mutation operators based on the given Abstract Syntax Tree node.
      * @param {object} subTree the object containing the node for which to return a mutation command
      * @param {object} globalExcludes object containing mutation codes to be excluded across the whole application
+     * @param {object} config the configuration for this mutation test
      * @returns {object} The mutation operators to be applied for this node
      */
-    function selectMutationOperators(subTree, globalExcludes) {
+    function selectMutationOperators(subTree, globalExcludes, config) {
         var node = subTree.node,
             excludes = subTree.excludes || globalExcludes,
             registryItem = _.find(registry, function (registryItem) {
                 return !!registryItem.predicate(node);
             }),
-            result = {operators: [], excludes: []};
+            result = {included: [], excluded: [], ignored: []};
 
         _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
-            if (_.indexOf(excludes, MutationOperator.code) > -1) {
-                result.excludes.push(MutationOperator.code);
-            } else {
-                result.operators.push(MutationOperator.create(node));
-            }
+            var operators = MutationOperator.create(node);
+            _.forEach(operators, function(operator) {
+                if (_.indexOf(excludes, MutationOperator.code) > -1) {
+                    result.excluded.push(node.range);
+                } else if (config.isInIgnoredRange(node) || config.isReplacementIgnored(operator)){
+                    result.ignored.push(node.range);
+                } else {
+                    result.included.push(operator);
+                }
+            }, this);
         });
-        result.operators = _.flatten(result.operators);
         return result;
     }
 

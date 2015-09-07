@@ -33,6 +33,10 @@
         this._original = null;
     };
 
+    BlockStatementMO.prototype.getReplacement = function() {
+        return null;
+    };
+
     module.exports.create = function(astNode) {
         var mos = [],
             nodeBody = astNode.body || [];

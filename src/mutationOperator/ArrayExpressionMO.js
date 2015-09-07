@@ -32,6 +32,10 @@
         this._original = null;
     };
 
+    ArrayExpressionMO.prototype.getReplacement = function() {
+        return null;
+    };
+
     module.exports.code = 'ARRAY';
     module.exports.create = function(astNode) {
         var mos = [];

@@ -34,6 +34,10 @@
         }
     };
 
+    ObjectMO.prototype.getReplacement = function() {
+        return null;
+    };
+
     module.exports.create = function(astNode){
         var properties = astNode.properties,
             mos = [];

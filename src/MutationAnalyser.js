@@ -11,8 +11,9 @@
         ExclusionUtils = require('./utils/ExclusionUtils'),
         MutationOperatorRegistry = require('./MutationOperatorRegistry');
 
-    function Mutator(ast) {
+    function Mutator(ast, config) {
         this._ast = ast;
+        this._config = config;
         this._mutationOperators = [];
     }
 
@@ -22,7 +23,8 @@
      * @returns {Array} list of mutation operators that can be applied to this code
      */
     Mutator.prototype.collectMutations = function(excludeMutations) {
-        var self = this,
+        var mutationOperators = this._mutationOperators,
+            config = this._config,
             tree = {node: this._ast},
             globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations);
 
@@ -32,8 +34,8 @@
                 childNodeFinder;
 
             if (astNode) {
-                selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(subTree);
-                Array.prototype.push.apply(self._mutationOperators, selectedMutationOperators.operators);
+                selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(subTree, globalExcludes, config);
+                Array.prototype.push.apply(mutationOperators, selectedMutationOperators.included);
                 childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
             }
             if (childNodeFinder) {
@@ -46,12 +48,12 @@
             }
         }
 
-        if (!(this._mutationOperators && this._mutationOperators.length)) {
+        if (!(mutationOperators && mutationOperators.length)) {
             tree.excludes = _.merge({}, globalExcludes, ExclusionUtils.getExclusions(tree.node)); // add top-level local excludes
             analyseNode(tree);
         }
 
-        return this._mutationOperators;
+        return mutationOperators;
     };
 
     module.exports = Mutator;

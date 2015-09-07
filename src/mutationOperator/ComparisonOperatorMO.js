@@ -37,6 +37,10 @@
         this._original = null;
     };
 
+    ComparisonOperatorMO.prototype.getReplacement = function() {
+        return this._replacement;
+    };
+
     module.exports.create = function(astNode) {
         var mos = [];
         if (operators.hasOwnProperty(astNode.operator)) {

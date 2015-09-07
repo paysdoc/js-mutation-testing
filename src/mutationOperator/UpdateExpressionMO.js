@@ -15,22 +15,22 @@
 
     function UpdateExpressionMO (astNode) {
         MutationOperator.call(this, astNode);
+        this._replacement = updateOperatorReplacements[astNode.operator];
     }
 
     UpdateExpressionMO.prototype.apply = function () {
         var astNode = this._astNode,
-            replacement = updateOperatorReplacements[astNode.operator],
             mutation;
 
         if (!this._original) {
             this._original = astNode.operator;
-            astNode.operator = replacement;
+            astNode.operator = this._replacement;
             if (astNode.prefix) {
                 // e.g. ++x
-                mutation = MutationUtils.createMutation(astNode, astNode.argument.range[0], this._original, replacement);
+                mutation = MutationUtils.createMutation(astNode, astNode.argument.range[0], this._original, this._replacement);
             } else {
                 // e.g. x++
-                mutation = _.merge(MutationUtils.createMutation(astNode, astNode.argument.range[1], this._original, replacement), {
+                mutation = _.merge(MutationUtils.createMutation(astNode, astNode.argument.range[1], this._original, this._replacement), {
                     begin: astNode.argument.range[1],
                     line: astNode.loc.end.line,
                     col: astNode.argument.loc.end.column
@@ -44,6 +44,10 @@
     UpdateExpressionMO.prototype.revert = function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
+    };
+
+    UpdateExpressionMO.prototype.getReplacement = function() {
+        return this._replacement;
     };
 
     module.exports.create = function(astNode) {

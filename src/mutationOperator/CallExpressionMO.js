@@ -39,7 +39,11 @@
             this._original = null;
         }
     };
-    
+
+    CallExpressionPropertyMO.prototype.getReplacement = function() {
+        return this._replacement.value;
+    };
+
     function mutateArgs() {
         var i = this._index,
             args = this._astNode['arguments'],
