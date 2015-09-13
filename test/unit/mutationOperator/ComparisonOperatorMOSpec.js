@@ -11,10 +11,12 @@ describe('ComparisonOperatorMO', function() {
             "type": "BinaryExpression",
             "operator": "<",
             "left": {
+                range: [5, 6],
                 "type": "Identifier",
                 "name": "a"
             },
             "right": {
+                range: [8, 9],
                 "type": "Identifier",
                 "name": "b"
             },
@@ -56,5 +58,12 @@ describe('ComparisonOperatorMO', function() {
         instances[0].revert(); //reverting again should have no effect
 
         expect(MutationUtilsSpy.createOperatorMutation.calls.count()).toEqual(2);
+    });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(instances[0].getReplacement()).toEqual({value: '<=', begin: 6, end: 8});
+
+        instances[0].apply(); //should still be the same after the mutation has been applied
+        expect(instances[0].getReplacement()).toEqual({value: '<=', begin: 6, end: 8});
     });
 });

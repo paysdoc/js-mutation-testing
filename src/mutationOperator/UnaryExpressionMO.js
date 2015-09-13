@@ -16,24 +16,30 @@
     }
 
     UnaryExpressionMO.prototype.apply = function () {
-        var mutation;
+        var mutationInfo;
 
         if (!this._original) {
             this._original = this._astNode.operator;
             delete this._astNode.operator;
-            mutation = MutationUtils.createUnaryOperatorMutation(this._astNode, this._parentMutationId, "");
+            mutationInfo = MutationUtils.createUnaryOperatorMutation(this._astNode, this._parentMutationId, "");
         }
 
-        return mutation;
+        return mutationInfo;
     };
 
-    UnaryExpressionMO.prototype.revert=  function() {
+    UnaryExpressionMO.prototype.revert = function() {
         this._astNode.operator = this._original || this._astNode.operator;
         this._original = null;
     };
 
     UnaryExpressionMO.prototype.getReplacement = function() {
-        return null;
+        var astNode = this._astNode;
+
+        return {
+            value: null,
+            begin: astNode.range[0],
+            end: astNode.range[0]+1
+        };
     };
 
     module.exports.create = function(astNode) {

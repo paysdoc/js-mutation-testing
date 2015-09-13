@@ -16,7 +16,7 @@
     }
 
     MutationOperator.prototype.getReplacement = function() {
-        return null;
+        return {value: null, begin: 0, end: 0};
     };
 
     module.exports = MutationOperator;

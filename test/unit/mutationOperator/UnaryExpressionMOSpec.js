@@ -8,6 +8,7 @@ describe('UnaryExpressionMO', function() {
         UnaryExpressionMO,
         MutationUtilsSpy,
         node = {
+            "range": [41, 45],
             "type": "UpdateExpression",
             "operator": "-",
             "argument": {
@@ -16,13 +17,15 @@ describe('UnaryExpressionMO', function() {
                 "name": "a"
             },
             "prefix": true
-        };
+        },
+        instances;
 
     beforeEach(function() {
         MutationUtilsSpy = jasmine.createSpyObj('MutationUtils', ['createUnaryOperatorMutation']);
         UnaryExpressionMO = proxyquire('../../../src/mutationOperator/UnaryExpressionMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
+        instances = UnaryExpressionMO.create(node);
     });
 
     it('creates an empty list of mutation operators', function() {
@@ -31,8 +34,7 @@ describe('UnaryExpressionMO', function() {
     });
 
     it('mutates a node and reverts it without affecting other parts of that node', function() {
-        var instances = UnaryExpressionMO.create(node),
-            instance;
+         var instance;
 
         expect(instances.length).toEqual(1);
         instance = instances[0];
@@ -49,5 +51,12 @@ describe('UnaryExpressionMO', function() {
         expect(node.operator).toEqual('-');
 
         expect(MutationUtilsSpy.createUnaryOperatorMutation).toHaveBeenCalledWith(node, undefined, '');
+    });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(instances[0].getReplacement()).toEqual({value: null, begin: 41, end: 42});
+
+        instances[0].apply(); //should still be the same after the mutation has been applied
+        expect(instances[0].getReplacement()).toEqual({value: null, begin: 41, end: 42});
     });
 });

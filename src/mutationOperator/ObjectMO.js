@@ -7,35 +7,34 @@
 
     var _ = require('lodash'),
         MutationOperator = require('./MutationOperator'),
+        ArrayMutatorUtil = require('../utils/ArrayMutatorUtil'),
         MutationUtils = require('../utils/MutationUtils');
 
     function ObjectMO (astNode, index) {
         MutationOperator.call(this, astNode);
-        this._index = index;
+        this._original = this._astNode.properties[index];
+        this._originalArray = _.clone(this._astNode.properties);
     }
 
     ObjectMO.prototype.apply = function () {
-        var properties = this._astNode.properties,
-            index = this._index,
-            mutation;
-
-        if (!this._original) {
-            mutation = MutationUtils.createAstArrayElementDeletionMutation(properties, index);
-            this._original = properties.splice(this._index, 1)[0];
+        function createMutationInfo(element) {
+            return MutationUtils.createMutation(element, element.range[1], element);
         }
-
-        return mutation;
+        return ArrayMutatorUtil.removeElement(this._astNode.properties, this._original, createMutationInfo);
     };
 
     ObjectMO.prototype.revert = function() {
-        if (this._original) {
-            this._astNode.properties.splice(this._index, 0, this._original);
-            this._original = null;
-        }
+        ArrayMutatorUtil.restoreElement(this._astNode.properties, this._original, this._originalArray);
     };
 
     ObjectMO.prototype.getReplacement = function() {
-        return null;
+        var property = this._original;
+
+        return {
+            value: null,
+            begin: property.range[0],
+            end: property.range[1]
+        };
     };
 
     module.exports.create = function(astNode){

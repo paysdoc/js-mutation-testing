@@ -53,4 +53,12 @@ describe('LiteralMO', function() {
         expect(node.value).toEqual('a');
 
     });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        mos = LiteralMO.create(node);
+        expect(mos[0].getReplacement()).toEqual({value: 'MUTATION', begin: 5, end: 7});
+
+        mos[0].apply(); //should still be the same after the mutation has been applied
+        expect(mos[0].getReplacement()).toEqual({value: 'MUTATION', begin: 5, end: 7});
+    });
 });

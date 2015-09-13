@@ -11,10 +11,12 @@ describe('EqualityOperatorMO', function() {
             "type": "BinaryExpression",
             "operator": "!==",
             "left": {
+                "range": [5, 6],
                 "type": "Identifier",
                 "name": "a"
             },
             "right": {
+                "range": [10, 11],
                 "type": "Identifier",
                 "name": "b"
             },
@@ -53,5 +55,12 @@ describe('EqualityOperatorMO', function() {
         expect(node.operator).toEqual('!==');
 
         expect(MutationUtilsSpy.createOperatorMutation.calls.count()).toEqual(1);
+    });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(instances[0].getReplacement()).toEqual({value: '===', begin: 6, end: 10});
+
+        instances[0].apply(); //should still be the same after the mutation has been applied
+        expect(instances[0].getReplacement()).toEqual({value: '===', begin: 6, end: 10});
     });
 });

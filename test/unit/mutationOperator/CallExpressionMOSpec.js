@@ -6,14 +6,18 @@
 describe('CallExpressionMO', function() {
     var JSParserWrapper = require('../../../src/JSParserWrapper'),
         proxyquire = require('proxyquire'),
-        MutationUtilsSpy,
+        LiteralUtilsSpy, CallExpressionSelfMOSpy, CallExpressionArgsMOSpy,
         CallExpressionMO;
 
     beforeEach(function() {
         jasmine.addMatchers(require('../../util/JasmineCustomMatchers'));
-        MutationUtilsSpy = jasmine.createSpyObj('MutationUtils', ['createMutation']);
+        LiteralUtilsSpy = spyOn(require('../../../src/utils/LiteralUtils'), ['determineReplacement']).and.returnValue('MUTATION!');
+        CallExpressionArgsMOSpy = jasmine.createSpyObj('CallExpressionArgsMO', ['create']);
+        CallExpressionSelfMOSpy = jasmine.createSpyObj('CallExpressionSelfMO', ['create']);
         CallExpressionMO = proxyquire('../../../src/mutationOperator/CallExpressionMO', {
-            '../utils/MutationUtils': MutationUtilsSpy
+            '../utils/LiteralUtils': LiteralUtilsSpy,
+            './CallExpressionArgsMO': CallExpressionArgsMOSpy,
+            './CallExpressionSelfMO': CallExpressionSelfMOSpy
         });
     });
 
@@ -31,12 +35,10 @@ describe('CallExpressionMO', function() {
             mos = CallExpressionMO.create(callExpression);
 
         expect(mos.length).toEqual(2);
-
-        mos[0].apply();
-        expect(callExpression).toHaveProperties({arguments: [{type: 'Literal', value: 'MUTATION!', raw: '\'MUTATION!\''}]});
-
-        mos[0].revert();
-        expect(callExpression).toHaveProperties({arguments: [{type: 'Identifier', name: 'a'}]});
+        expect(CallExpressionArgsMOSpy.create.calls.count()).toBe(1);
+        expect(CallExpressionSelfMOSpy.create.calls.count()).toBe(1);
+        expect(CallExpressionArgsMOSpy.create).toHaveBeenCalledWith(callExpression, {type: 'Literal', value: 'MUTATION!', raw: '\'MUTATION!\''}, 0);
+        expect(CallExpressionSelfMOSpy.create).toHaveBeenCalledWith(callExpression, callExpression.arguments[0]);
     });
 
     it('creates 3 mutation operators for a call with one argument to a member of an object', function() {
@@ -45,21 +47,11 @@ describe('CallExpressionMO', function() {
             mos = CallExpressionMO.create(callExpression);
 
         expect(mos.length).toEqual(3);
-
-        mos[2].apply();
-        expect(callExpression).toHaveProperties({"type":"Identifier","name":"callThis"});
-
-        mos[2].revert();
-        expect(callExpression).toHaveProperties({
-            "type": "CallExpression",
-            "callee": {
-                "type": "MemberExpression",
-                "computed": false,
-                "object": {"type": "Identifier", "name": "callThis"},
-                "property": {"type": "Identifier", "name": "member"}
-            },
-            "arguments": [{"type": "Identifier", "name": "a"}]
-        });
+        expect(CallExpressionArgsMOSpy.create.calls.count()).toBe(1);
+        expect(CallExpressionSelfMOSpy.create.calls.count()).toBe(2);
+        expect(CallExpressionArgsMOSpy.create).toHaveBeenCalledWith(callExpression, {type: 'Literal', value: 'MUTATION!', raw: '\'MUTATION!\''}, 0);
+        expect(CallExpressionSelfMOSpy.create).toHaveBeenCalledWith(callExpression, callExpression.arguments[0]);
+        expect(CallExpressionSelfMOSpy.create).toHaveBeenCalledWith(callExpression, callExpression.callee.object);
     });
 
     it('creates 3 mutation operators for a call with one literal argument to a member of an object', function() {
@@ -67,55 +59,11 @@ describe('CallExpressionMO', function() {
             callExpression = ast.body[0].expression,
             mos = CallExpressionMO.create(callExpression);
 
-        var originalProps = {
-            "type": "CallExpression",
-            "callee": {
-                "type": "MemberExpression",
-                "computed": false,
-                "object": {
-                    "type": "Identifier",
-                    "name": "callThis"
-                },
-                "property": {
-                    "type": "Identifier",
-                    "name": "member"
-                }
-            },
-            "arguments": [{
-                "type": "Literal",
-                "value": "a",
-                "raw": "'a'"
-            }]
-        };
-        var mutatedProps = {
-            type: 'CallExpression',
-            callee: {
-                type: 'MemberExpression',
-                object: {type: 'Identifier', name: 'callThis'},
-                property: {type: 'Identifier', name: 'member'}
-            },
-            arguments: ['"MUTATION!"']
-        };
-        expect(mos.length).toEqual(3);
-        mos[0].apply();
-        expect(callExpression).toHaveProperties(mutatedProps);
-        mos[1].apply();
-        expect(callExpression).toHaveProperties({type: 'Literal', value: 'a', raw: '\'a\''});
-        mos[2].apply();
-        expect(callExpression).toHaveProperties({type: 'Identifier', name: 'callThis'});
-        expect(MutationUtilsSpy.createMutation.calls.count()).toEqual(3);
-        mos[2].apply();
-        expect(MutationUtilsSpy.createMutation.calls.count()).toEqual(3); //extra call should not have been made
-
-        mos[2].revert();
-        expect(callExpression).not.toHaveProperties({type: 'Identifier', name: 'callThis'});
-        mos[2].revert();
-        expect(callExpression).not.toHaveProperties({type: 'Identifier', name: 'callThis'});
-        expect(callExpression).toHaveProperties({type: 'Literal', value: 'a', raw: '\'a\''});
-        mos[1].revert();
-        expect(callExpression).not.toHaveProperties({type: 'Literal', value: 'a', raw: '\'a\''});
-        expect(callExpression).toHaveProperties(mutatedProps);
-        mos[0].revert();
-        expect(callExpression).toHaveProperties(originalProps);
+        expect(mos.length).toBe(3);
+        expect(CallExpressionArgsMOSpy.create.calls.count()).toBe(1);
+        expect(CallExpressionSelfMOSpy.create.calls.count()).toBe(2);
+        expect(CallExpressionArgsMOSpy.create).toHaveBeenCalledWith(callExpression, 'MUTATION!', 0);
+        expect(CallExpressionSelfMOSpy.create).toHaveBeenCalledWith(callExpression, callExpression.arguments[0]);
+        expect(CallExpressionSelfMOSpy.create).toHaveBeenCalledWith(callExpression, callExpression.callee.object);
     });
 });

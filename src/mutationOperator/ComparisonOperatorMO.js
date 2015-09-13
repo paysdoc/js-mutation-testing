@@ -22,14 +22,14 @@
     }
 
     ComparisonOperatorMO.prototype.apply = function () {
-        var mutation;
+        var mutationInfo;
 
         if (!this._original) {
             this._original = this._astNode.operator;
             this._astNode.operator = this._replacement;
-            mutation = MutationUtils.createOperatorMutation(this._astNode, this._original, this._replacement);
+            mutationInfo = MutationUtils.createOperatorMutation(this._astNode, this._original, this._replacement);
         }
-        return mutation;
+        return mutationInfo;
     };
 
     ComparisonOperatorMO.prototype.revert = function() {
@@ -38,7 +38,13 @@
     };
 
     ComparisonOperatorMO.prototype.getReplacement = function() {
-        return this._replacement;
+        var astNode = this._astNode;
+
+        return {
+            value: this._replacement,
+            begin: astNode.left.range[1],
+            end: astNode.right.range[0]
+        };
     };
 
     module.exports.create = function(astNode) {

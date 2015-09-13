@@ -9,6 +9,7 @@ describe('UpdateExpressionMO', function() {
         UpdateExpressionMO,
         createMutationSpy,
         node = {
+            "range": [40, 45],
             "type": "UpdateExpression",
             "operator": "++",
             "argument": {
@@ -29,7 +30,7 @@ describe('UpdateExpressionMO', function() {
     });
 
     it('creates an empty list of mutation operators', function() {
-        instances = UpdateExpressionMO.create({});
+        var instances = UpdateExpressionMO.create({});
         expect(instances.length).toEqual(0);
     });
 
@@ -39,7 +40,8 @@ describe('UpdateExpressionMO', function() {
 
     it('mutates \'x++\' to \'x--\' and back again', function() {
         delete node.prefix;
-        testUpdateExpressionMO(45);
+        node.argument.range = [40, 43];
+        testUpdateExpressionMO(43);
     });
 
     function testUpdateExpressionMO(replacement) {
@@ -59,4 +61,15 @@ describe('UpdateExpressionMO', function() {
         expect(createMutationSpy.calls.count()).toEqual(1);
         expect(createMutationSpy).toHaveBeenCalledWith(node, replacement, '++', '--');
     }
+
+    it('retrieves the replacement value and its coordinates', function() {
+        var instances = UpdateExpressionMO.create(node);
+        expect(instances[0].getReplacement()).toEqual({value: '--', begin: 43, end: 45});
+
+        //now switch the pdate operator to the front
+        node.prefix = true;
+        node.argument.range = [42, 45];
+        instances = UpdateExpressionMO.create(node);
+        expect(instances[0].getReplacement()).toEqual({value: '--', begin: 40, end: 42});
+    });
 });

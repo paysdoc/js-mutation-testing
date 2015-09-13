@@ -16,21 +16,27 @@
 
     LiteralMO.prototype.apply = function () {
         var value = this._astNode.value,
-            mutation;
+            mutationInfo;
 
         if (!this._original) {
             this._original = value;
             if (this._replacement) {
                 this._astNode.value = this._replacement;
-                mutation = MutationUtils.createMutation(this._astNode, this._astNode.range[1], value, this._replacement);
+                mutationInfo = MutationUtils.createMutation(this._astNode, this._astNode.range[1], value, this._replacement);
             }
         }
 
-        return mutation;
+        return mutationInfo;
     };
 
     LiteralMO.prototype.getReplacement = function() {
-        return this._replacement;
+        var astNode = this._astNode;
+
+        return {
+            value: this._replacement,
+            begin: astNode.range[0],
+            end: astNode.range[1]
+        };
     };
 
     LiteralMO.prototype.revert = function() {

@@ -11,4 +11,8 @@ describe('MutationOperator', function() {
             instance = new MutationOperator(node);
         expect(instance._astNode).toEqual(node);
     });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(new MutationOperator({someProp: 'someProp'}).getReplacement()).toEqual({value: null, begin: 0, end: 0});
+    });
 });

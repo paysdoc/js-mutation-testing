@@ -26,10 +26,12 @@
     };
 
     Configuration.prototype.isInIgnoredRange = function(node) {
-        var ignoredRanges = getIgnoredRanges(this._config, JSParserWrapper.stringify(node));
+        var partialSrc = JSParserWrapper.stringify(node),
+            tmpNode = JSParserWrapper.parse(partialSrc), //create temporary node with ranges fitting partialSrc
+            ignoredRanges = getIgnoredRanges(this._config, partialSrc);
 
         return _.any(ignoredRanges, function(ignoredRange) {
-            return ignoredRange.coversRange(mutation.begin, mutation.end);
+            return ignoredRange.coversRange(tmpNode.range);
         });
     };
 
@@ -51,8 +53,8 @@
             this.start = start;
             this.end = end;
 
-            this.coversRange = function(start, end) {
-                return start < this.end && end > this.start;
+            this.coversRange = function(range) {
+                return range[0] === this.start && range[1] === this.end;
             };
         }
 

@@ -19,15 +19,15 @@
     }
 
     LogicalExpressionMO.prototype.apply = function () {
-        var mutation;
+        var mutationInfo;
 
         if (!this._original) {
             this._original = this._astNode.operator;
             this._astNode.operator = operators[this._astNode.operator];
-            mutation = MutationUtils.createOperatorMutation(this._astNode, this._astNode.operator, this._original);
+            mutationInfo = MutationUtils.createOperatorMutation(this._astNode, this._astNode.operator, this._original);
         }
 
-        return mutation;
+        return mutationInfo;
     };
 
     LogicalExpressionMO.prototype.revert = function() {
@@ -36,7 +36,13 @@
     };
 
     LogicalExpressionMO.prototype.getReplacement = function() {
-        return operators[this._original ? this._original : this._astNode.operator];
+        var astNode = this._astNode;
+
+        return {
+            value: operators[this._original ? this._original : this._astNode.operator],
+            begin: astNode.left.range[1],
+            end: astNode.right.range[0]
+        };
     };
 
     module.exports.create = function(astNode){

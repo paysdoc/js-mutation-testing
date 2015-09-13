@@ -18,13 +18,6 @@ var createMutation = function (astNode, endOffset, original, replacement) {
     };
 };
 
-var createAstArrayElementDeletionMutation = function (astArray, elementIndex) {
-    var endOffset = (elementIndex === astArray.length - 1) ? // is last element ?
-        astArray[elementIndex].range[1] :                     // handle last element
-        astArray[elementIndex + 1].range[0];   // care for commas by extending to start of next element
-    return createMutation(astArray[elementIndex], endOffset, astArray[elementIndex]);
-};
-
 var createUnaryOperatorMutation = function (astNode, original, replacement) {
     var mutation = createMutation(astNode, astNode.range[0]+1, original, replacement);
     return _.merge(mutation, {
@@ -34,7 +27,7 @@ var createUnaryOperatorMutation = function (astNode, original, replacement) {
 };
 
 var createOperatorMutation = function (astNode, original, replacement) {
-    var mutation = createUnaryOperatorMutation(astNode, astNode.right.range[0], original, replacement);
+    var mutation = createMutation(astNode, astNode.right.range[0], original, replacement);
     return _.merge(mutation, {
         begin: astNode.left.range[1],
         line: astNode.loc.end.line,
@@ -43,6 +36,5 @@ var createOperatorMutation = function (astNode, original, replacement) {
 };
 
 module.exports.createMutation = createMutation;
-module.exports.createAstArrayElementDeletionMutation = createAstArrayElementDeletionMutation;
 module.exports.createOperatorMutation = createOperatorMutation;
 module.exports.createUnaryOperatorMutation = createUnaryOperatorMutation;

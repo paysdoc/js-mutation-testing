@@ -7,7 +7,7 @@ describe('ArithmeticOperatorMO', function() {
     var proxyquire = require('proxyquire'),
         ArithmeticOperatorMO,
         MutationUtilsSpy,
-        node = {operator: '*', someStuff: 'someStuff'},
+        node = {operator: '*', left: {range: [2,3]}, right: {range: [5, 6]}, someStuff: 'someStuff'},
         instances;
 
     beforeEach(function() {
@@ -31,7 +31,7 @@ describe('ArithmeticOperatorMO', function() {
 
         instance.apply();
         expect(node.operator).toEqual('/');
-        expect(MutationUtilsSpy.createOperatorMutation).toHaveBeenCalledWith({ operator: '/', someStuff: 'someStuff' }, '/', '*');
+        expect(MutationUtilsSpy.createOperatorMutation).toHaveBeenCalledWith({ operator: '/', left: {range: [2,3]}, right: {range: [5, 6]}, someStuff: 'someStuff'}, '/', '*');
 
         instance.apply(); //applying again should have no effect: it will not increase the call count of the spy
         expect(node.operator).toEqual('/');
@@ -44,5 +44,12 @@ describe('ArithmeticOperatorMO', function() {
 
         instance.revert(); //reverting again should have no effect
         expect(node.operator).toEqual('*');
+    });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(instances[0].getReplacement()).toEqual({value: '/', begin: 3, end: 5});
+
+        instances[0]._original = '/';
+        expect(instances[0].getReplacement()).toEqual({value: '*', begin: 3, end: 5});
     });
 });

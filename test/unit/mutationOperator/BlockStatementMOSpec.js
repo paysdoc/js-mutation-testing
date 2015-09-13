@@ -45,4 +45,12 @@ describe('BlockStatementMO', function() {
         instance.revert(); //reverting again should have no effect
         expect(node.body).toEqual([{range: [47,50], foo: 'foo'}, {range: [51,54], bar: 'bar'}, ['baz']]);
     });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        var second = instances[1];
+        expect(instances[0].getReplacement()).toEqual({value: null, begin: 47, end: 50});
+
+        second.apply(); //remove the element: it should still be returned with its coordinates
+        expect(second.getReplacement()).toEqual({value: null, begin: 51, end: 54});
+    });
 });

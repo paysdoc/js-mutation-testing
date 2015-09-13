@@ -16,19 +16,18 @@
      * remove the element from the array
      * @param {Array} array array from which to remove the element
      * @param {*} element element to be removed
-     * @param {Function} callback function to be called if provided
+     * @param {Function} callback function to be called if provided. Callback will be invoked with one argument: ((given)element)
      * @returns {*} the result of the callback
      */
     function removeElement(array, element, callback) {
         var i = array.indexOf(element),
             cbResult;
 
-        if (i == -1) {
-            throw 'Element to be removed not found in array: ' + element;
+        if (i > -1) {
+            cbResult = callback && callback(element);
+            array.splice(i, 1);
         }
 
-        cbResult = callback && callback();
-        array.splice(i, 1);
         return cbResult;
     }
 

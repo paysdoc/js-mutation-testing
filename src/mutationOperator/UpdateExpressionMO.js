@@ -20,17 +20,17 @@
 
     UpdateExpressionMO.prototype.apply = function () {
         var astNode = this._astNode,
-            mutation;
+            mutationInfo;
 
         if (!this._original) {
             this._original = astNode.operator;
             astNode.operator = this._replacement;
             if (astNode.prefix) {
                 // e.g. ++x
-                mutation = MutationUtils.createMutation(astNode, astNode.argument.range[0], this._original, this._replacement);
+                mutationInfo = MutationUtils.createMutation(astNode, astNode.argument.range[0], this._original, this._replacement);
             } else {
                 // e.g. x++
-                mutation = _.merge(MutationUtils.createMutation(astNode, astNode.argument.range[1], this._original, this._replacement), {
+                mutationInfo = _.merge(MutationUtils.createMutation(astNode, astNode.argument.range[1], this._original, this._replacement), {
                     begin: astNode.argument.range[1],
                     line: astNode.loc.end.line,
                     col: astNode.argument.loc.end.column
@@ -38,7 +38,7 @@
             }
         }
 
-        return mutation;
+        return mutationInfo;
     };
 
     UpdateExpressionMO.prototype.revert = function() {
@@ -47,7 +47,12 @@
     };
 
     UpdateExpressionMO.prototype.getReplacement = function() {
-        return this._replacement;
+        var astNode = this._astNode,
+            coordinates = astNode.prefix ?
+            {begin: astNode.range[0], end: astNode.argument.range[0]} :
+            {begin: astNode.argument.range[1], end: astNode.range[1]};
+
+        return _.merge({value: this._replacement}, coordinates);
     };
 
     module.exports.create = function(astNode) {

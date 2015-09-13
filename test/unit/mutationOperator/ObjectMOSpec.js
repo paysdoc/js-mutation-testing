@@ -13,7 +13,7 @@ describe('ObjectMO', function() {
         instances;
 
     beforeEach(function() {
-        MutationUtilsSpy = jasmine.createSpyObj('MutationUtils', ['createAstArrayElementDeletionMutation']);
+        MutationUtilsSpy = jasmine.createSpyObj('MutationUtils', ['createMutation']);
         ObjectMO = proxyquire('../../../src/mutationOperator/ObjectMO', {
             '../utils/MutationUtils': MutationUtilsSpy
         });
@@ -35,7 +35,7 @@ describe('ObjectMO', function() {
         expect(node.properties).toEqual([prop1]);
         instance.apply(); //applying again should have no effect: it will not increase the call count of the spy
         expect(node.properties).toEqual([prop1]);
-        expect(MutationUtilsSpy.createAstArrayElementDeletionMutation.calls.count()).toEqual(1);
+        expect(MutationUtilsSpy.createMutation.calls.count()).toEqual(1);
 
         instance.revert();
         expect(node.properties).toEqual([prop1, prop2]);
@@ -46,6 +46,13 @@ describe('ObjectMO', function() {
         expect(node.properties[0] === prop1).toBeTruthy();
         expect(node.properties[1] === prop2).toBeTruthy();
 
-        expect(MutationUtilsSpy.createAstArrayElementDeletionMutation).toHaveBeenCalledWith([prop1, prop2], 1);
+        expect(MutationUtilsSpy.createMutation).toHaveBeenCalledWith(prop2, 57, prop2);
+    });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(instances[0].getReplacement()).toEqual({value: null, begin: 43, end: 49});
+
+        instances[0].apply(); //should still be the same after the mutation has been applied
+        expect(instances[0].getReplacement()).toEqual({value: null, begin: 43, end: 49});
     });
 });

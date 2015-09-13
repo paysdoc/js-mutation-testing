@@ -6,7 +6,6 @@
 describe('ArrayMutatorUtil', function() {
     var _ = require('lodash'),
         ArrayMutatorUtil = require('../../../src/utils/ArrayMutatorUtil'),
-        original,
         idA = {"type": "Identifier","name": "a"},
         idB = {"type": "Identifier","name": "b"},
         fnExpr = {
@@ -29,11 +28,8 @@ describe('ArrayMutatorUtil', function() {
             },
             "generator": false,
             "expression": false
-        };
-
-    beforeEach(function() {
+        },
         original = [idA, 'foo', idB, fnExpr, 'foo', idB, 'foo', 3, false];
-    });
 
     it('Applies a given mutation on a given array by finding the element in the array and removing is', function() {
         var callbackSpy = jasmine.createSpy('callback'),
@@ -42,17 +38,15 @@ describe('ArrayMutatorUtil', function() {
         ArrayMutatorUtil.removeElement(array, fnExpr, callbackSpy);
         expect(array).toEqual([idA, 'foo', idB, 'foo', idB, 'foo', 3, false]);
         expect(callbackSpy.calls.count()).toBe(1);
+        expect(callbackSpy).toHaveBeenCalledWith(fnExpr);
     });
 
     it('throws an exception if an attempt is made to remove an element that is not in the array', function() {
         var callbackSpy = jasmine.createSpy('callback'),
             array = _.clone(original);
 
-        function remodeInvalid() {
-            ArrayMutatorUtil.removeElement(array, 'fnExpr', callbackSpy);
-        }
-
-        expect(remodeInvalid).toThrow('Element to be removed not found in array: fnExpr');
+        expect(ArrayMutatorUtil.removeElement(array, 'fnExpr', callbackSpy)).toBeFalsy();
+        expect(callbackSpy).not.toHaveBeenCalled();
     });
 
     it('returns elements into an array as close as possible to their original position', function() {

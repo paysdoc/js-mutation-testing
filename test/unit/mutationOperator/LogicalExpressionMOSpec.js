@@ -57,4 +57,11 @@ describe('LogicalExpressionMO', function() {
 
         expect(MutationUtilsSpy.createOperatorMutation.calls.count()).toEqual(1);
     });
+
+    it('retrieves the replacement value and its coordinates', function() {
+        expect(instances[0].getReplacement()).toEqual({value: '&&', begin: 43, end: 47});
+
+        instances[0].apply(); //should still be the same after the mutation has been applied
+        expect(instances[0].getReplacement()).toEqual({value: '&&', begin: 43, end: 47});
+    });
 });
