@@ -7,12 +7,14 @@ var _ = require('lodash');
 (function (module){
     module.exports = {
 
-        /**
-         * checks whether testee contains the properties (with the same values) as expected
-         * @returns {{compare: Function}}
-         */
         toHaveProperties : function() {
             return {
+                /**
+                 * checks whether testee contains the properties (with the same values) as expected
+                 * @param actual the result of the test
+                 * @param expected an object containing the minimum porperties (end their values) that the result ought to contain
+                 * @returns {{pass: boolean | undefined, message: string | undefined}}
+                 */
                 compare: function(actual, expected) {
 
                     var recursiveComparison = function(actual, expected) {
@@ -40,7 +42,7 @@ var _ = require('lodash');
 
                     return recursiveComparison(actual, expected);
                 }
-            }
+            };
         }
     };
 })(module);

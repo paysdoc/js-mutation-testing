@@ -77,5 +77,5 @@ describe('ArrayMutatorUtil', function() {
         }
 
         expect(returnInvalid).toThrow('Element to be restored not found in original array: bla,ble,bli');
-    })
+    });
 });

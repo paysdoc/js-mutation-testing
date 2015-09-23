@@ -8,6 +8,8 @@ var gulp = require('gulp'),
     istanbul = require('gulp-istanbul');
 
 gulp.task('test', function() {
+    'use strict';
+
     gulp.src(['src/**/*.js'])
         .pipe(istanbul({includeUntested:true}))
         .pipe(istanbul.hookRequire())

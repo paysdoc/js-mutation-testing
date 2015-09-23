@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * gulp task that checks the code style (JSHint)
  * @author Martin Koster [paysdoc@gmail.com], created on 21/06/15.
@@ -5,8 +7,8 @@
  */
 var gulp = require('gulp'),
     jshint = require('gulp-jshint');
-
 gulp.task('lint', function() {
+
     gulp.src('src/**/*.js')
         .pipe(jshint())
         .pipe(jshint.reporter('jshint-stylish'))

@@ -7,13 +7,21 @@
 (function(exports){
     'use strict';
 
-    var esprima = require('esprima'),
+    var _ = require('lodash'),
+        esprima = require('esprima'),
         escodegen = require('escodegen');
 
-    function parse(src) {
-        var ast = esprima.parse(src, {range: true, loc: true, tokens: true, comment: true});
+    /**
+     * Parses the source
+     * @param {string} src to be parsed
+     * @param {object} [options] parsing options are: range (default = true), loc (default = true), tokens (default = false), comments (default = true)
+     * @returns {*}
+     */
+    function parse(src, options) {
+        var ast = esprima.parse(src, _.merge({range: true, loc: true, tokens: true, comment: true}, options || {})),
+            result = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
-        return escodegen.attachComments(ast, ast.comments, ast.tokens);
+        return options && options.tokens ? result : _.omit(result, 'tokens');
     }
 
     function tokenize(src, options) {

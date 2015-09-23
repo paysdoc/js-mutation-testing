@@ -9,38 +9,42 @@
     var _ = require('lodash'),
         JSParserWrapper = require('./JSParserWrapper');
 
-    var Configuration = function(config) {
+    var Configuration = function(src, config) {
+        var ignore = config && config.discardDefaultIgnore ? []: [/('use strict'|"use strict");/],
+            configIgnore = config ? config.ignore : [];
+
         // merge given config with defaults
         this._config = _.merge({
             logLevel: 'INFO',
             reporters: {console: true},
             maxReportedMutationLength: 80,
-            ignore: /('use strict'|"use strict");/,
             ignoreReplacement: null,
             excludeMutations: null,
             mutateProductionCode: false,
             discardDefaultIgnore: false,
             test: null
         }, config);
+
+        Array.prototype.push.apply(ignore, ensureArray(configIgnore));
+        this._config.ignore = ignore;
+        this._src = src;
+
         createGetters(this);
     };
 
     Configuration.prototype.isInIgnoredRange = function(node) {
-        var partialSrc = JSParserWrapper.stringify(node),
-            tmpNode = JSParserWrapper.parse(partialSrc), //create temporary node with ranges fitting partialSrc
-            ignoredRanges = getIgnoredRanges(this._config, partialSrc);
-
-        return _.any(ignoredRanges, function(ignoredRange) {
-            return ignoredRange.coversRange(tmpNode.range);
+        return _.any(getIgnoredRanges(this._config, this._src), function (ignoredRange) {
+            return ignoredRange.coversRange(node.range);
         });
     };
 
-    Configuration.prototype.isReplacementIgnored = function(mutationOperator) {
+    Configuration.prototype.isReplacementIgnored = function(replacement) {
         var ignoredReplacements = this._config.ignoreReplacement;
 
         return _.any(ensureArray(ignoredReplacements), function(ignoredReplacement) {
             ignoredReplacement = _.isRegExp(ignoredReplacement) ? ignoredReplacement : new RegExp(ignoredReplacement);
-            return ignoredReplacement.test(mutationOperator.getReplacement());
+            ignoredReplacement.lastIndex = 0; //reset the regex
+            return ignoredReplacement.test(replacement);
         });
     };
 
@@ -54,7 +58,7 @@
             this.end = end;
 
             this.coversRange = function(range) {
-                return range[0] === this.start && range[1] === this.end;
+                return this.start <= range[0] && range[1] <= this.end;
             };
         }
 
@@ -64,7 +68,7 @@
                 if(_.isRegExp(ignorePart)) {
                     return new RegExp(ignorePart.source, 'gm' + (ignorePart.ignoreCase ? 'i' : ''));
                 } else {
-                    return new RegExp(ignorePart, 'gm');
+                    return new RegExp(ignorePart.replace(/([\/\)\(\[\]\{\}'"\?\*\.\+\|\^\$])/g, function(all, group) {return '\\' + group;}), 'gm');
                 }
             });
 
@@ -82,8 +86,8 @@
         _.forOwn(ctx._config, function(value, prop) {
             Configuration.prototype['get' + _.capitalize(prop)] = function() {
                 return value;
-            }
-        })
+            };
+        });
     }
 
     module.exports = Configuration;

@@ -11,10 +11,12 @@
         ExclusionUtils = require('./utils/ExclusionUtils'),
         MutationOperatorRegistry = require('./MutationOperatorRegistry');
 
-    function Mutator(ast, config) {
+    function MutationAnalyser(ast, config) {
         this._ast = ast;
         this._config = config;
         this._mutationOperators = [];
+        this._ignored = [];
+        this._excluded = [];
     }
 
     /**
@@ -22,8 +24,10 @@
      * @param excludeMutations mutation (operators) to exclude
      * @returns {Array} list of mutation operators that can be applied to this code
      */
-    Mutator.prototype.collectMutations = function(excludeMutations) {
+    MutationAnalyser.prototype.collectMutations = function(excludeMutations) {
         var mutationOperators = this._mutationOperators,
+            ignoredMOs = this._ignored,
+            excludedMOs = this._excluded,
             config = this._config,
             tree = {node: this._ast},
             globalExcludes = _.merge(MutationOperatorRegistry.getDefaultExcludes(), excludeMutations);
@@ -34,8 +38,11 @@
                 childNodeFinder;
 
             if (astNode) {
+
                 selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(subTree, globalExcludes, config);
-                Array.prototype.push.apply(mutationOperators, selectedMutationOperators.included);
+                Array.prototype.push.apply(mutationOperators, selectedMutationOperators.included); //using push.apply to push array content instead of whole array
+                Array.prototype.push.apply(ignoredMOs, selectedMutationOperators.ignored);
+                Array.prototype.push.apply(excludedMOs, selectedMutationOperators.excluded);
                 childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
             }
             if (childNodeFinder) {
@@ -56,5 +63,17 @@
         return mutationOperators;
     };
 
-    module.exports = Mutator;
+    MutationAnalyser.prototype.getMutationOperators = function() {
+        return this._mutationOperators;
+    };
+
+    MutationAnalyser.prototype.getIgnored = function() {
+        return this._ignored;
+    };
+
+    MutationAnalyser.prototype.getExcluded = function() {
+        return this._excluded;
+    };
+
+    module.exports = MutationAnalyser;
 })(module);

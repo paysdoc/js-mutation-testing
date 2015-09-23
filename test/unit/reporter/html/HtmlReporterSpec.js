@@ -22,21 +22,21 @@ describe('HtmlReporter', function() {
         ]
     };
 
-    var readDirStub = function() {return arguments[0] === '.' ?  mocks.dirContents : []};
+    var readDirStub = function() {return arguments[0] === '.' ?  mocks.dirContents : [];};
 
     var HtmlReporter, createIndexFileCount = 0;
 
     beforeEach(function() {
         mocks.dirContents = [];
-        spyOn(pathMock, 'join').and.callFake(function() {return arguments[0] + '/' + arguments[1]});
-        spyOn(pathMock, 'relative').and.callFake(function() {return arguments[1]});
+        spyOn(pathMock, 'join').and.callFake(function() {return arguments[0] + '/' + arguments[1];});
+        spyOn(pathMock, 'relative').and.callFake(function() {return arguments[1];});
         spyOn(fsMock, 'readdirSync').and.callFake(readDirStub);
         spyOn(IOUtilsMock, 'createPathIfNotExists');
         spyOn(IOUtilsMock, 'getDirectoryList').and.callFake(function() {return arguments[0];});
         spyOn(fileHtmlBuilderSpy, 'createFileReports').and.callThrough();
         HtmlReporter = proxyquire('../../../../src/reporter/html/HtmlReporter', {
-            './FileHtmlBuilder': function() {return fileHtmlBuilderSpy},
-            './IndexHtmlBuilder': function() {return indexHtmlBuilderSpy},
+            './FileHtmlBuilder': function() {return fileHtmlBuilderSpy;},
+            './IndexHtmlBuilder': function() {return indexHtmlBuilderSpy;},
             '../../utils/IOUtils': IOUtilsMock,
             'path': pathMock,
             'fs': fsMock
@@ -94,7 +94,7 @@ describe('HtmlReporter', function() {
             done.fail('Expected a parse error on dir1');
         }, function(error) {
             expect(error).toEqual('Unable to parse stats from file dir1, reason: TypeError: Cannot read property \'1\' of null');
-            done()
+            done();
         });
     });
 
@@ -107,7 +107,7 @@ describe('HtmlReporter', function() {
             expect(fsMock.statSync.calls.allArgs()).toEqual([['./index.html']]);
             done();
         }, function(error) {
-            done.fail(error)
+            done.fail(error);
         });
     });
 

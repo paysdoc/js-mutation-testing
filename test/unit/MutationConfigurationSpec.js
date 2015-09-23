@@ -5,55 +5,58 @@
  */
 describe('MutationConfiguration', function() {
 
-    var MutationConfiguration = require('../../src/MutationConfiguration');
-    var node = {
-        "range": [68, 111],
-        "type": "BlockStatement",
-        "body": [
-            {
-                "range": [72, 85],
-                "type": "ExpressionStatement",
-                "expression": {
-                    "range": [72, 84],
-                    "type": "Literal",
-                    "value": "use strict",
-                    "raw": "'use strict'"
-                }
-            },
-            {
-                "range": [88, 109],
-                "type": "VariableDeclaration",
-                "declarations": [
-                    {
-                        "range": [92, 108],
-                        "type": "VariableDeclarator",
-                        "id": {
-                            "range": [92, 100],
-                            "type": "Identifier",
-                            "name": "question"
-                        },
-                        "init": {
-                            "range": [103, 108],
-                            "type": "Literal",
-                            "value": "uh?",
-                            "raw": "'uh?'"
-                        }
-                    }
-                ],
-                "kind": "var"
-            }
-        ]
-    };
+    var MutationConfiguration = require('../../src/MutationConfiguration'),
+        JSParserWrapper = require('../../src/JSParserWrapper'),
+        src = '\'use strict\'; var question = \'uh?\';',
+        node;
+
+    beforeEach(function() {
+        node = JSParserWrapper.parse(src);
+    });
 
     it('creates getters from all properties in config', function() {
-        var config = new MutationConfiguration();
+        var config = new MutationConfiguration(src);
         expect(config.getLogLevel()).toBe('INFO');
         expect(config.getReporters().console).toBeTruthy();
         expect(config.getIgnore().toString()).toBe('/(\'use strict\'|"use strict");/');
     });
 
     it('ignores the \'use strict\' statement', function() {
-        expect(new MutationConfiguration().isInIgnoredRange(node)).toBeFalsy();
-        expect(new MutationConfiguration().isInIgnoredRange(node.body[0])).toBeTruthy();
+        var config = new MutationConfiguration(src);
+        expect(config.isInIgnoredRange(node)).toBeFalsy();
+        expect(config.isInIgnoredRange(node.body[0], src)).toBeTruthy();
+    });
+
+    it('does not ignore the \'use strict\' statement if option "discardDefaultIgnore" is set to true unless ignore is explicitly set to ignore "use strict', function() {
+        var config = new MutationConfiguration(src, {discardDefaultIgnore: true});
+        expect(config.isInIgnoredRange(node.body[0])).toBeFalsy();
+
+        config = new MutationConfiguration(src, {discardDefaultIgnore: true, ignore: /('use strict'|"use strict");/});
+        expect(config.isInIgnoredRange(node.body[0])).toBeTruthy();
+    });
+
+    it('ignores non-regex strings', function() {
+        var config = new MutationConfiguration(src, {ignore: '\'uh?\''});
+        expect(config.isInIgnoredRange(node.body[1].declarations[0].init)).toBeTruthy();
+    });
+
+    it('ignores a given string replacement', function() {
+        var config = new MutationConfiguration(src);
+        expect(config.isReplacementIgnored()).toBeFalsy();
+
+        config = new MutationConfiguration(src, {ignoreReplacement: 'MUTATION!'});
+        expect(config.isReplacementIgnored('MUTATION')).toBeFalsy();
+        expect(config.isReplacementIgnored('MUTATION!')).toBeTruthy();
+
+    });
+
+    it('ignores a given regex replacement', function() {
+        var config = new MutationConfiguration(src);
+        expect(config.isReplacementIgnored()).toBeFalsy();
+
+        config = new MutationConfiguration(src, {ignoreReplacement: /MUTA/g});
+        expect(config.isReplacementIgnored('MUTATION')).toBeTruthy();
+        expect(config.isReplacementIgnored('MUTETION')).toBeFalsy();
+
     });
 });

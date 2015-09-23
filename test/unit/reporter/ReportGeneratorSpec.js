@@ -15,8 +15,8 @@ describe('Report Generator', function() {
     beforeEach(function() {
         resolve = promiseResolver.resolve;
         reportGenerator = proxyquire('../../../src/reporter/ReportGenerator', {
-            './html/HtmlReporter': function() {return {create: resolve}},
-            'path': {join: function(a, b) {return a + '/' + b}},
+            './html/HtmlReporter': function() {return {create: resolve};},
+            'path': {join: function(a, b) {return a + '/' + b;}},
             'log4js': {getLogger: function() {return loggerStub;}}
         });
     });
@@ -40,7 +40,7 @@ describe('Report Generator', function() {
                 args: ['Generated the mutation HTML report in: %s', '.'],
                 returnValue: undefined
             });
-        }
+        };
     });
 
     it("Creates an HTML reporter with a rejection object", function(done) {

@@ -129,7 +129,7 @@ describe('JSParseWrapper', function () {
     });
 
     it('parses a valid piece of source code', function () {
-        var ast = JSParserWrapper.parse('//some silly function\nfunction a() {var a = 3 + 2;}');
+        var ast = JSParserWrapper.parse('//some silly function\nfunction a() {var a = 3 + 2;}', {tokens: true});
         expect(ast).toHaveProperties(expected);
     });
 
@@ -142,7 +142,7 @@ describe('JSParseWrapper', function () {
     });
 
     it('tokenizes a valid piece of source code', function () {
-        var ast = JSParserWrapper.tokenize('function a() {var a = 3 + 2;}');
+        var ast = JSParserWrapper.tokenize('//bla\nfunction a() {var a = 3 + 2;}');
         expect(ast).toHaveProperties(tokens);
     });
 

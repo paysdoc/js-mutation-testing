@@ -26,6 +26,7 @@
     "gulp-istanbul": "^0.10.0",
     "gulp-jasmine": "^2.0.1",
     "gulp-jshint": "^1.11.0",
+    "gulp-util": "^3.0.6",
     "istanbul": "^0.3.17",
     "jasmine": "^2.3.1",
     "jasmine-core": "^2.3.4",

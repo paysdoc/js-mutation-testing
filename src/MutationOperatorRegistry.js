@@ -4,6 +4,7 @@
  *
  * To add new commands to the application simply create a new Mutation command based on BaseMutationOperator and add it to the registry together with an appropriate predicate.
  *
+ * TODO: Lots of lines of code: can this class be split up? Would that be logical?
  * Created by Martin Koster on 2/20/15.
  */
 (function MutationOperatorRegistry(exports) {
@@ -118,10 +119,11 @@
         _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
             var operators = MutationOperator.create(node);
             _.forEach(operators, function(operator) {
-                if (_.indexOf(excludes, MutationOperator.code) > -1) {
+                var replacement = operator.getReplacement();
+                if (excludes[MutationOperator.code]) {
                     result.excluded.push(node.range);
-                } else if (config.isInIgnoredRange(node) || config.isReplacementIgnored(operator)){
-                    result.ignored.push(node.range);
+                } else if (config.isInIgnoredRange(node) || config.isReplacementIgnored(replacement.value)){
+                    result.ignored.push([replacement.begin, replacement.end]);
                 } else {
                     result.included.push(operator);
                 }

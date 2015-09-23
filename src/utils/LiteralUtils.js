@@ -4,6 +4,8 @@
  */
 var _ = require('lodash');
 module.exports.determineReplacement = function (literalValue) {
+    'use strict';
+
     var replacement;
 
     if (_.isString(literalValue)) {

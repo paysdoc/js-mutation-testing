@@ -1,3 +1,4 @@
+'use strict';
 /**
  * main build
  * @author Martin Koster [paysdoc@gmail.com], created on 21/06/15.

@@ -1,3 +1,4 @@
+/* jshint ignore: start */
 function onLoad() {
     each(document.getElementsByClassName('code'), function(element) {
         element.addEventListener('mouseover', onMouseOver, false);
