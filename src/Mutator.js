@@ -35,7 +35,7 @@
      * undo previous mutation operation, will do nothing if there is no mutation
      */
     Mutator.prototype.unMutate = function() {
-        this._handler.undo();
+        this._handler.revertMutation();
     };
 
     function calibrateBeginAndEnd(begin, end, brackets) {

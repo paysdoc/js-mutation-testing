@@ -1,7 +1,6 @@
 /**
  * IO relates utilities
- * Created by Martin Koste
- * r on 3/2/15.
+ * Created by Martin Koster on 3/2/15.
  */
 var fs = require('fs'),
     os = require('os'),
