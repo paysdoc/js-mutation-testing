@@ -9,25 +9,27 @@ describe('MutationOperatorHandler', function() {
         moHandler, apply1, apply2, revert1, revert2;
 
     beforeEach( function() {
-        apply1 = jasmine.createSpy('apply');
-        apply2 = jasmine.createSpy('apply');
-        revert1 = jasmine.createSpy('revert');
-        revert2 = jasmine.createSpy('revert');
+        apply1 = spyOn({apply: function(){return 'apply1'}}, 'apply').and.callThrough();
+        apply2 = spyOn({apply: function(){return 'apply2'}}, 'apply').and.callThrough();
+        revert1 = spyOn({apply: function(){return 'revert1'}}, 'apply').and.callThrough();
+        revert2 = spyOn({apply: function(){return 'revert2'}}, 'apply').and.callThrough();
         moHandler = new MutationOperatorHandler();
     });
 
     it('applies a mutation and adds it to its stack', function(){
-        moHandler.applyMutation([{code: 'mutationA', apply: apply1, revert: revert1}]);
-
+        expect(moHandler.applyMutation([{code: 'mutationA', apply: apply1, revert: revert1}])).toEqual(['apply1']);
         expect(apply1).toHaveBeenCalled();
         expect(moHandler._moStack[0][0].code).toEqual('mutationA');
     });
 
     it('applies mutation sets, and reverts them all in the order in which they have been applied', function(){
-        moHandler.applyMutation([{code: 'mutationA', apply: apply1, revert: revert1}, {code: 'mutationB', apply: apply2, revert: revert2}]);
-        moHandler.applyMutation([{code: 'mutationC', apply: apply1, revert: revert1}, {code: 'mutationD', apply: apply2, revert: revert2}]);
-        expect(apply1.calls.count()).toBe(2);
-        expect(apply2.calls.count()).toBe(2);
+        var result1 = moHandler.applyMutation([{code: 'mutationA', apply: apply1, revert: revert1}, {code: 'mutationB', apply: apply2, revert: revert2}]),
+            result2 = moHandler.applyMutation([{code: 'mutationC', apply: apply2, revert: revert1}, {code: 'mutationD', apply: apply2, revert: revert2}]);
+
+        expect(result1).toEqual(['apply1', 'apply2']);
+        expect(result2).toEqual(['apply2', 'apply2']);
+        expect(apply1.calls.count()).toBe(1);
+        expect(apply2.calls.count()).toBe(3);
         expect(revert1.calls.count()).toBe(0);
         expect(revert2.calls.count()).toBe(0);
 

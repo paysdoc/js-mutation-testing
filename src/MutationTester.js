@@ -40,7 +40,7 @@
             testPromise;
 
         testPromise = IOUtils.promiseToReadFile(fileName).then(function (src) {
-            var mutationReports,
+            var mutationDescription,
                 ast = JSParserWrapper.parse(src),
                 mutationResults = [],
                 mutator,
@@ -50,14 +50,14 @@
             _.forEach(new MutationAnalyser(ast).collectMutations(self._excludeMutations), function(mutationOperatorSet) {
                 promise = promise
                     .then(function () {
-                        mutationReports = mutator.mutate(mutationOperatorSet);
+                        mutationDescription = mutator.mutate(mutationOperatorSet);
                         IOUtils.promiseToWriteFile(fileName, JSParserWrapper.generate(ast));
                     })
                     .then(function () {
                         executeTest(testCallback);
                     })
                     .then(function (result) {
-                        mutationResults.push({fileName: fileName, mutations: mutationReports, result: result});
+                        mutationResults.push({fileName: fileName, mutations: mutationDescription, result: result});
                         mutator.unMutate();
                         return mutationResults;
                     });
