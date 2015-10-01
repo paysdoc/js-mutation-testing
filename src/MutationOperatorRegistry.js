@@ -4,7 +4,6 @@
  *
  * To add new commands to the application simply create a new Mutation command based on BaseMutationOperator and add it to the registry together with an appropriate predicate.
  *
- * TODO: Lots of lines of code: can this class be split up? Would that be logical?
  * Created by Martin Koster on 2/20/15.
  */
 (function MutationOperatorRegistry(exports) {
@@ -103,27 +102,27 @@
 
     /**
      * Selectes a set of mutation operators based on the given Abstract Syntax Tree node.
-     * @param {object} subTree the object containing the node for which to return a mutation command
-     * @param {object} globalExcludes object containing mutation codes to be excluded across the whole application
-     * @param {object} config the configuration for this mutation test
-     * @returns {object} The mutation operators to be applied for this node
+     * @param {object} astNode the node for which to return a mutation command
+     * @param {object} mutationOperationWarden the object guarding the status of each mutation operation
+     * @returns {object} The mutation operators to be applied for this astNode
      */
-    function selectMutationOperators(subTree, globalExcludes, config) {
-        var node = subTree.node,
-            excludes = subTree.excludes || globalExcludes,
-            registryItem = _.find(registry, function (registryItem) {
-                return !!registryItem.predicate(node);
+    function selectMutationOperators(astNode, mutationOperationWarden) {
+        var registryItem = _.find(registry, function (registryItem) {
+                return !!registryItem.predicate(astNode);
             }),
             result = {included: [], excluded: [], ignored: []};
 
         _.forEach((registryItem && registryItem.MutationOperators) || [], function(MutationOperator) {
-            var operators = MutationOperator.create(node);
+            var operators = MutationOperator.create(astNode);
+
             _.forEach(operators, function(operator) {
-                var replacement = operator.getReplacement();
-                if (excludes[MutationOperator.code]) {
-                    result.excluded.push(node.range);
-                } else if (config.isInIgnoredRange(node) || config.isReplacementIgnored(replacement.value)){
+                var replacement = operator.getReplacement(),
+                    status = mutationOperationWarden.getMOStatus(astNode, operator, MutationOperator.code);
+
+                if (status === 'ignore') {
                     result.ignored.push([replacement.begin, replacement.end]);
+                } else if (status === 'exclude') {
+                    result.excluded.push(astNode.range);
                 } else {
                     result.included.push(operator);
                 }
@@ -151,27 +150,19 @@
      * @returns {[string]} a list of mutation codes
      */
     function getAllMutationCodes() {
-        return _.keys(getDefaultExcludes());
+        return _.pluck(getMutationOperatorTypes(), 'code');
     }
 
     /**
-     * returns the default exclusion status of each mutation command
-     * @returns {object} a list of mutation codes [key] and whether or not they're excluded [value]
+     * returns the mutation types currently registered
+     * @returns {Array}
      */
-    function getDefaultExcludes() {
-        var excludes = {};
-        _.forEach(_.uniq(_.flatten(_.pluck(registry, 'MutationOperators'), true)), function(operator){
-            if(operator.code) {
-                excludes[operator.code] = !!operator.exclude;
-            } else {
-                throw new TypeError('expected a MutationOperation class with a code, but code was ' + operator.code);
-            }
-        });
-        return excludes;
+    function getMutationOperatorTypes() {
+        return _.uniq(_.flatten(_.pluck(registry, 'MutationOperators'), true));
     }
 
     exports.selectMutationOperators = selectMutationOperators;
     exports.selectChildNodeFinder = selectChildNodeFinder;
     exports.getAllMutationCodes = getAllMutationCodes;
-    exports.getDefaultExcludes = getDefaultExcludes;
+    exports.getMutationOperatorTypes = getMutationOperatorTypes;
 })(module.exports);

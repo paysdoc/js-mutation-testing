@@ -10,7 +10,8 @@ describe('MutationOperatorRegistry', function() {
         ComparisonOperatorMO = require('../../src/mutationOperator/ComparisonOperatorMO'),
         EqualityOperatorMO = require('../../src/mutationOperator/EqualityOperatorMO'),
         ArithmeticOperatorMO = require('../../src/mutationOperator/ArithmeticOperatorMO'),
-        MockEqualityOperatorMO, MockMutationConfiguration;
+        mockStatus, mockMOWarden = {getMOStatus: function() {return mockStatus}},
+        MockEqualityOperatorMO, MockMutationConfiguration, getMOStatusSpy;
 
     function mockCreate(create, key) {
         if (_.isFunction(create)) {
@@ -25,6 +26,8 @@ describe('MutationOperatorRegistry', function() {
     beforeEach(function() {
         jasmine.addMatchers(require('../util/JasmineCustomMatchers'));
 
+        mockStatus = 'include';
+        getMOStatusSpy = spyOn(mockMOWarden, 'getMOStatus').and.callThrough();
         MockMutationConfiguration = jasmine.createSpyObj('MutationConiguration', ['isInIgnoredRange', 'isReplacementIgnored']);
         MockEqualityOperatorMO = {
             code: "EQUALITY",
@@ -53,15 +56,6 @@ describe('MutationOperatorRegistry', function() {
         });
     });
 
-    it('returns all mutation operators that are excluded by default', function() {
-        expect(MutationOperatorRegistry.getDefaultExcludes()).toHaveProperties({EQUALITY: true});
-    });
-
-    it('throws an exception if it comes across a MutationOperator class without a code', function() {
-        delete MockEqualityOperatorMO.code;
-        expect(MutationOperatorRegistry.getDefaultExcludes).toThrowError('expected a MutationOperation class with a code, but code was undefined');
-    });
-
     it('returns all mutation mutation codes that are not excluded by default', function() {
         expect(MutationOperatorRegistry.getAllMutationCodes()).toEqual([
             'BLOCK_STATEMENT',
@@ -80,7 +74,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and fitting childNodeFinder for a block statement', function() {
         var node = {"body": []};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['block_statement']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('ArrayCNF');
@@ -88,13 +82,13 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns no mutation operator and a fitting childNodeFinder for a while / do...while statement', function() {
         var node = {"type": "WhileStatement"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual([]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('IterationCNF');
 
         node = {"type": "DoWhileStatement"};
-        selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual([]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('IterationCNF');
@@ -102,7 +96,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns no mutation operator and a fitting childNodeFinder for a \'for\' loop', function() {
         var node = {"type": "ForStatement"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual([]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('ForLoopCNF');
@@ -110,7 +104,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns no mutation operator and a fitting childNodeFinder for an assignment expression', function() {
         var node = {"type": "AssignmentExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual([]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('ChildNodeFinder');
@@ -118,7 +112,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and fitting childNodeFinder for a call expression', function() {
         var node = {"type": "CallExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['method_call']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('CallExpressionCNF');
@@ -126,7 +120,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and fitting childNodeFinder for a block statement', function() {
         var node = {"type": "ObjectExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['object']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('PropertyCNF');
@@ -134,7 +128,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and fitting childNodeFinder for a block statement', function() {
         var node = {"type": "ArrayExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['array']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('ArrayCNF');
@@ -142,7 +136,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and fitting childNodeFinder for an arithmetic expression', function() {
         var node = {"type": "BinaryExpression", "operator": "+"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toContain('math');
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('LeftRightCNF');
@@ -150,7 +144,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns mutation operators and a fitting childNodeFinder for a comparison expression', function() {
         var node = {"type": "BinaryExpression", "operator": ">="};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toContain('comparison');
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('LeftRightCNF');
@@ -158,8 +152,10 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns mutation operators and a fitting childNodeFinder for a equality expression', function() {
         var node = {"type": "BinaryExpression", "operator": "==", "range": [23, 24]},
-            result = MutationOperatorRegistry.selectMutationOperators({node: node, excludes: {EQUALITY: true}}, {}, MockMutationConfiguration);
+            result;
 
+        mockStatus = 'exclude';
+        result = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
         expect(result.included.length).toEqual(0);
         expect(result.excluded).toEqual([[23, 24]]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('LeftRightCNF');
@@ -167,7 +163,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and no childNodeFinder for an update expression', function() {
         var node = {"type": "UpdateExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['update_expression']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node)).toEqual(null);
@@ -176,7 +172,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and no childNodeFinder for a literal', function() {
         var node = {"type": "Literal"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['literal']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node)).toEqual(null);
@@ -184,7 +180,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and no childNodeFinder for an unary expression', function() {
         var node = {"type": "UnaryExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['unary_expression']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node)).toEqual(null);
@@ -192,7 +188,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns a mutation operator and fitting childNodeFinder for an logical expression', function() {
         var node = {"type": "LogicalExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual(['logical_expression']);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('LeftRightCNF');
@@ -200,7 +196,7 @@ describe('MutationOperatorRegistry', function() {
 
     it('returns no mutation operators and a fitting childNodeFinder for an unrecognized type', function() {
         var node = {"type": "FooExpression"};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual([]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node).type).toEqual('ChildNodeFinder');
@@ -209,23 +205,26 @@ describe('MutationOperatorRegistry', function() {
     it('returns a list of ignored mutation operators', function() {
         var selectedMO;
 
+        mockStatus = 'ignore';
         MockMutationConfiguration = {isInIgnoredRange: function() {return false;}, isReplacementIgnored: function() {return true;}};
-        selectedMO = MutationOperatorRegistry.selectMutationOperators({node: {"type": "LogicalExpression"}}, {}, MockMutationConfiguration);
+        selectedMO = MutationOperatorRegistry.selectMutationOperators({"type": "LogicalExpression"}, mockMOWarden);
         expect(selectedMO.ignored).toEqual([[0,0]]);
     });
 
     it('returns a mutation operator and fitting childNodeFinder for an unrecognized type', function() {
         var node = "Foo";
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {}, MockMutationConfiguration);
+        var selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
 
         expect(_.pluck(selectedMO.included, 'code')).toEqual([]);
         expect(MutationOperatorRegistry.selectChildNodeFinder(node)).toEqual(null);
     });
 
     it('excludes a mutation operator if its code is set to be excluded', function(){
-        var node = {"type": "Literal", range: [3, 7]};
-        var selectedMO = MutationOperatorRegistry.selectMutationOperators({node: node}, {LITERAL: true}, MockMutationConfiguration);
+        var node = {"type": "Literal", range: [3, 7]},
+            selectedMO;
 
+        mockStatus = 'exclude';
+        selectedMO = MutationOperatorRegistry.selectMutationOperators(node, mockMOWarden);
         expect(selectedMO.excluded).toEqual([[3, 7]]);
     });
 });

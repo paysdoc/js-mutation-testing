@@ -7,44 +7,62 @@
     'use strict';
 
     var _ = require('lodash'),
+        glob = require('glob'),
+        log4js = require('log4js'),
+        path = require('path'),
         JSParserWrapper = require('./JSParserWrapper');
 
-    var Configuration = function(src, config) {
-        var ignore = config && config.discardDefaultIgnore ? []: [/('use strict'|"use strict");/],
-            configIgnore = config ? config.ignore : [];
-
-        // merge given config with defaults
-        this._config = _.merge({
+    var DEFAULT_OPTIONS = {
+            basePath: '.',
             logLevel: 'INFO',
             reporters: {console: true},
+            ignoreReplacements: [],
+            excludeMutations: [],
             maxReportedMutationLength: 80,
-            ignoreReplacement: null,
-            excludeMutations: null,
             mutateProductionCode: false,
-            discardDefaultIgnore: false,
-            test: null
-        }, config);
+            discardDefaultIgnore: false
+        },
+        DEFAULT_REPORTER = {
+            console: true // By default, report only to the console, which takes no additional configuration
+        },
+        REQUIRED_OPTIONS = [
+            'code' // The code needs to be configured to be able to perform the mutation tests
+        ];
 
+    var Configuration = function(rawConfig) {
+        var ignore = rawConfig && rawConfig.discardDefaultIgnore ? []: [/('use strict'|"use strict");/],
+            configIgnore = rawConfig.ignore || [],
+            config;
+
+        // merge given rawConfig with defaults
+        config = this._config = _.merge(DEFAULT_OPTIONS, rawConfig);
+        if(!areRequiredOptionsSet(config)) {
+            throw new Error('Not all required options have been set');
+        }
+
+        // ensure that ignore and ignoreReplacement are arrays and are added to the rawConfig
         Array.prototype.push.apply(ignore, ensureArray(configIgnore));
-        this._config.ignore = ignore;
-        this._src = src;
+        config.ignore = ignore;
+        config.ignoreReplacements = rawConfig && rawConfig.ignoreReplacements? ensureArray(rawConfig.ignoreReplacements) : [];
 
-        createGetters(this);
-    };
+        config.code = expandFiles(config.code, config.basePath);
 
-    Configuration.prototype.isInIgnoredRange = function(node) {
-        return _.any(getIgnoredRanges(this._config, this._src), function (ignoredRange) {
-            return ignoredRange.coversRange(node.range);
+        // Set logging options
+        log4js.setGlobalLogLevel(log4js.levels[rawConfig.logLevel]);
+        log4js.configure({
+            appenders: [{type: 'console', layout: {type: 'pattern', pattern: '%[(%d{ABSOLUTE}) %p [%c]:%] %m'}}]
         });
-    };
 
-    Configuration.prototype.isReplacementIgnored = function(replacement) {
-        var ignoredReplacements = this._config.ignoreReplacement;
+        // Only set the default reporter when no explicit reporter configuration is provided
+        if(!rawConfig.hasOwnProperty('reporters')) {
+            rawConfig.reporters = DEFAULT_REPORTER;
+        }
 
-        return _.any(ensureArray(ignoredReplacements), function(ignoredReplacement) {
-            ignoredReplacement = _.isRegExp(ignoredReplacement) ? ignoredReplacement : new RegExp(ignoredReplacement);
-            ignoredReplacement.lastIndex = 0; //reset the regex
-            return ignoredReplacement.test(replacement);
+        //with all options set - let's make sure each option has a getter
+        _.forOwn(config, function(value, prop) {
+            Configuration.prototype['get' + _.capitalize(prop)] = function() {
+                return value;
+            };
         });
     };
 
@@ -52,44 +70,40 @@
         return val ? _.isArray(val) ? val : [val] : [];
     }
 
-    function getIgnoredRanges(opts, src) {
-        function IgnoredRange(start, end) {
-            this.start = start;
-            this.end = end;
+    module.exports = Configuration;
 
-            this.coversRange = function(range) {
-                return this.start <= range[0] && range[1] <= this.end;
-            };
+    /**
+     * Prepend all given files with the provided basepath and expand all wildcards
+     * @param files the files to expand
+     * @param basePath the basepath from which the files should be expanded
+     * @returns {Array} list of expanded files
+     */
+    function expandFiles(files, basePath) {
+        var expandedFiles = [];
+
+        if(!_.isArray(files)) {
+            files = [files];
         }
 
-        var ignoredRanges = [],
-        // Convert to array of RegExp instances with the required options (global and multiline) set
-            ignore = _.map(ensureArray(opts.ignore), function(ignorePart) {
-                if(_.isRegExp(ignorePart)) {
-                    return new RegExp(ignorePart.source, 'gm' + (ignorePart.ignoreCase ? 'i' : ''));
-                } else {
-                    return new RegExp(ignorePart.replace(/([\/\)\(\[\]\{\}'"\?\*\.\+\|\^\$])/g, function(all, group) {return '\\' + group;}), 'gm');
-                }
-            });
-
-        _.forEach(ignore, function(ignorePart) {
-            var match;
-            while(match = ignorePart.exec(src)) {
-                ignoredRanges.push(new IgnoredRange(match.index, match.index + match[0].length));
-            }
+        _.forEach(files, function(fileName) {
+            expandedFiles = _.union(
+                expandedFiles,
+                glob.sync(path.join(basePath, fileName), { dot: true })
+            );
         });
 
-        return ignoredRanges;
+        return expandedFiles;
     }
 
-    function createGetters(ctx) {
-        _.forOwn(ctx._config, function(value, prop) {
-            Configuration.prototype['get' + _.capitalize(prop)] = function() {
-                return value;
-            };
+    /**
+     * Check if all required options are set on the given opts object
+     * @param opts the options object to check
+     * @returns {boolean} indicator of all required options have been set or not
+     */
+    function areRequiredOptionsSet(opts) {
+        return !_.find(REQUIRED_OPTIONS, function(option) {
+            return !opts.hasOwnProperty(option);
         });
     }
 
-    module.exports = Configuration;
 })(module);
-

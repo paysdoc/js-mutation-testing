@@ -6,7 +6,10 @@
 (function(module) {
     'use strict';
 
-    var MutationAnalyser = require('./MutationAnalyser'),
+    var MutationConfiguration = require('./MutationConfiguration'),
+        MutationOperatorWarden = require('./MutationOperatorWarden'),
+        MutationOperatorRegistry = require('./MutationOperatorRegistry'),
+        MutationAnalyser = require('./MutationAnalyser'),
         Mutator = require('./Mutator'),
         JSParserWrapper = require('./JSParserWrapper'),
         exec = require('sync-exec'),
@@ -16,9 +19,8 @@
         Q = require('q');
 
     var logger = log4js.getLogger('MutationTester');
-    var MutationTester = function(fileNames, options) {
-        this._excludeMutations = options.excludeMutations;
-        this._fileNames = fileNames;
+    var MutationTester = function(options) {
+        this._config = new MutationConfiguration(options);
     };
 
     MutationTester.prototype.test = function(testCallback) {
@@ -36,28 +38,29 @@
     };
 
     MutationTester.prototype.testFile = function(fileName, testCallback) {
-        var self = this,
+        var config = this._config,
             testPromise;
 
         testPromise = IOUtils.promiseToReadFile(fileName).then(function (src) {
-            var mutationDescription,
+            var moWarden = new MutationOperatorWarden(src, config, MutationOperatorRegistry.getMutationOperatorTypes()),
+                mutationDescriptions,
                 ast = JSParserWrapper.parse(src),
                 mutationResults = [],
                 mutator,
                 promise = new Q({});
 
             mutator = new Mutator(src);
-            _.forEach(new MutationAnalyser(ast).collectMutations(self._excludeMutations), function(mutationOperatorSet) {
+            _.forEach(new MutationAnalyser(ast).collectMutations(moWarden), function(mutationOperatorSet) {
                 promise = promise
                     .then(function () {
-                        mutationDescription = mutator.mutate(mutationOperatorSet);
+                        mutationDescriptions = mutator.mutate(mutationOperatorSet);
                         IOUtils.promiseToWriteFile(fileName, JSParserWrapper.generate(ast));
                     })
                     .then(function () {
                         executeTest(testCallback);
                     })
                     .then(function (result) {
-                        mutationResults.push({fileName: fileName, mutations: mutationDescription, result: result});
+                        mutationResults.push({fileName: fileName, mutations: mutationDescriptions, result: result});
                         mutator.unMutate();
                         return mutationResults;
                     });

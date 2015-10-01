@@ -5,58 +5,63 @@
  */
 describe('MutationConfiguration', function() {
 
-    var MutationConfiguration = require('../../src/MutationConfiguration'),
-        JSParserWrapper = require('../../src/JSParserWrapper'),
+    var proxyquire = require('proxyquire'),
         src = '\'use strict\'; var question = \'uh?\';',
-        node;
+        MutationConfiguration, syncSpy;
 
     beforeEach(function() {
-        node = JSParserWrapper.parse(src);
+        syncSpy = jasmine.createSpy('sync');
+        MutationConfiguration = proxyquire('../../src/MutationConfiguration', {
+            'glob': {sync: syncSpy}
+        });
     });
 
-    it('creates getters from all properties in config', function() {
-        var config = new MutationConfiguration(src);
+    it('creates getters from the properties in config', function() {
+        var config = new MutationConfiguration({
+            code: ['some/path', 'another/path'],
+            discardDefaultIgnore: false,
+            ignore: [/use struct/],
+            ignoreReplacements: '"MUTATION!"',
+            reporters: {text: {dir: 'someDir', file: 'someFile'}}
+        });
+
+        expect(syncSpy).toHaveBeenCalledWith('some/path', {dot: true});
+
+        // check for the existence of the getters
+        expect(config.getBasePath()).toBe('.');
         expect(config.getLogLevel()).toBe('INFO');
-        expect(config.getReporters().console).toBeTruthy();
+        expect(config.getReporters().text).toEqual({dir: 'someDir', file: 'someFile'});
+        expect(config.getIgnoreReplacements()).toEqual(['"MUTATION!"']);
+        expect(config.getExcludeMutations()).toEqual([]);
+        expect(config.getMaxReportedMutationLength()).toBe(80);
+        expect(config.getMutateProductionCode()).toBeFalsy();
+        expect(config.getDiscardDefaultIgnore()).toBeFalsy();
+        expect(config.getCode()).toEqual([]); //actual expanding of code has been mocked away - hence empty array
+        expect(config.getIgnore()).toEqual([/('use strict'|"use strict");/, /use struct/]);
+    });
+
+    it('creates defaults with minimal configuration', function() {
+        var config = new MutationConfiguration({code: 'some/path'});
+
+        expect(config.getDiscardDefaultIgnore()).toBeFalsy();
+        expect(config.getIgnoreReplacements()).toEqual([]);
         expect(config.getIgnore().toString()).toBe('/(\'use strict\'|"use strict");/');
     });
 
-    it('ignores the \'use strict\' statement', function() {
-        var config = new MutationConfiguration(src);
-        expect(config.isInIgnoredRange(node)).toBeFalsy();
-        expect(config.isInIgnoredRange(node.body[0], src)).toBeTruthy();
+    it('does not add \'use strict\' to the defaults if discardDefaultIgnore is set', function() {
+        var config = new MutationConfiguration({
+            code: 'some/path',
+            discardDefaultIgnore: true,
+            ignore: [/use struct/]
+        });
+
+        expect(config.getDiscardDefaultIgnore()).toBeTruthy();
+        expect(config.getIgnoreReplacements()).toEqual([]);
+        expect(config.getIgnore()).toEqual([/use struct/]);
     });
 
-    it('does not ignore the \'use strict\' statement if option "discardDefaultIgnore" is set to true unless ignore is explicitly set to ignore "use strict', function() {
-        var config = new MutationConfiguration(src, {discardDefaultIgnore: true});
-        expect(config.isInIgnoredRange(node.body[0])).toBeFalsy();
-
-        config = new MutationConfiguration(src, {discardDefaultIgnore: true, ignore: /('use strict'|"use strict");/});
-        expect(config.isInIgnoredRange(node.body[0])).toBeTruthy();
-    });
-
-    it('ignores non-regex strings', function() {
-        var config = new MutationConfiguration(src, {ignore: '\'uh?\''});
-        expect(config.isInIgnoredRange(node.body[1].declarations[0].init)).toBeTruthy();
-    });
-
-    it('ignores a given string replacement', function() {
-        var config = new MutationConfiguration(src);
-        expect(config.isReplacementIgnored()).toBeFalsy();
-
-        config = new MutationConfiguration(src, {ignoreReplacement: 'MUTATION!'});
-        expect(config.isReplacementIgnored('MUTATION')).toBeFalsy();
-        expect(config.isReplacementIgnored('MUTATION!')).toBeTruthy();
-
-    });
-
-    it('ignores a given regex replacement', function() {
-        var config = new MutationConfiguration(src);
-        expect(config.isReplacementIgnored()).toBeFalsy();
-
-        config = new MutationConfiguration(src, {ignoreReplacement: /MUTA/g});
-        expect(config.isReplacementIgnored('MUTATION')).toBeTruthy();
-        expect(config.isReplacementIgnored('MUTETION')).toBeFalsy();
-
+    it('logs an error if required options are not set', function() {
+        var breakit = function() {return new MutationConfiguration(src)};
+        expect(breakit).toThrowError('Not all required options have been set');
     });
 });

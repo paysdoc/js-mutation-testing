@@ -72,7 +72,7 @@ Code that matches with any of the supplied regular expressions will not be mutat
 
 Note that, by default, mutations on the strict mode keyword `'use strict'` will be ignored. If you really do want to mutate it, this can be done by providing the `options.discardDefaultIgnore` option (see below).
 
-##### options.ignoreReplacement
+##### options.ignoreReplacements
 _optional_
 Type: `String` or `RegExp` or `[String and/or RegExp]`
 

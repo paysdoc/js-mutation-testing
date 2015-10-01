@@ -6,8 +6,7 @@
 (function(module) {
     'use strict';
 
-    var _ = require('lodash'),
-        ScopeUtils = require('../utils/ScopeUtils');
+    var _ = require('lodash');
 
     var ChildNodeFinder = function(astNode, property) {
         var body = astNode.body;
