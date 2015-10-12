@@ -12,6 +12,18 @@ var fs = require('fs'),
    'use strict';
 
     /**
+     * returns the file path relative to the given base path
+     * @param {String} basePath the base path
+     * @param {String} srcFilePath the given file path
+     * @returns {String} the relative path
+     */
+    module.exports.getRelativeFilePath = function getRelativeFilePath(basePath, srcFilePath) {
+        var normalizedBasePath = IOUtils.normalizeWindowsPath(basePath),
+            normalizedSrcFile = IOUtils.normalizeWindowsPath(srcFilePath);
+        return _.last(normalizedSrcFile.split(normalizedBasePath));
+    };
+
+    /**
      * returns a list of directories, given a path
      * @param {String} path path to dissect
      * @param {boolean} [excludeLastSegment] exclude last segment of the path (can sometimes be a file name), DEFAULT false

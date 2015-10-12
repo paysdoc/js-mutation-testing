@@ -12,7 +12,18 @@
         path = require('path'),
         JSParserWrapper = require('./JSParserWrapper');
 
+    // Placeholder function for when no explicit before, after, or test function is provided
+    function CALL_DONE(done) {
+        done(true);
+    }
+
     var DEFAULT_OPTIONS = {
+            before: CALL_DONE,
+            beforeEach: CALL_DONE,
+            test: CALL_DONE,
+            afterEach: CALL_DONE,
+            after: CALL_DONE,
+
             basePath: '.',
             logLevel: 'INFO',
             reporters: {console: true},
@@ -26,16 +37,14 @@
             console: true // By default, report only to the console, which takes no additional configuration
         },
         REQUIRED_OPTIONS = [
-            'code' // The code needs to be configured to be able to perform the mutation tests
+            'mutate' // The files to perform the mutation tests on
         ];
 
     var Configuration = function(rawConfig) {
         var ignore = rawConfig && rawConfig.discardDefaultIgnore ? []: [/('use strict'|"use strict");/],
             configIgnore = rawConfig.ignore || [],
-            config;
+            config = _.merge(DEFAULT_OPTIONS, rawConfig);
 
-        // merge given rawConfig with defaults
-        config = this._config = _.merge(DEFAULT_OPTIONS, rawConfig);
         if(!areRequiredOptionsSet(config)) {
             throw new Error('Not all required options have been set');
         }
@@ -45,7 +54,7 @@
         config.ignore = ignore;
         config.ignoreReplacements = rawConfig && rawConfig.ignoreReplacements? ensureArray(rawConfig.ignoreReplacements) : [];
 
-        config.code = expandFiles(config.code, config.basePath);
+        config.mutate = expandFiles(config.mutate, config.basePath);
 
         // Set logging options
         log4js.setGlobalLogLevel(log4js.levels[rawConfig.logLevel]);

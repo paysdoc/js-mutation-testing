@@ -18,7 +18,7 @@ describe('MutationConfiguration', function() {
 
     it('creates getters from the properties in config', function() {
         var config = new MutationConfiguration({
-            code: ['some/path', 'another/path'],
+            mutate: ['some/path', 'another/path'],
             discardDefaultIgnore: false,
             ignore: [/use struct/],
             ignoreReplacements: '"MUTATION!"',
@@ -36,12 +36,12 @@ describe('MutationConfiguration', function() {
         expect(config.getMaxReportedMutationLength()).toBe(80);
         expect(config.getMutateProductionCode()).toBeFalsy();
         expect(config.getDiscardDefaultIgnore()).toBeFalsy();
-        expect(config.getCode()).toEqual([]); //actual expanding of code has been mocked away - hence empty array
+        expect(config.getMutate()).toEqual([]); //actual expanding of code has been mocked away - hence empty array
         expect(config.getIgnore()).toEqual([/('use strict'|"use strict");/, /use struct/]);
     });
 
     it('creates defaults with minimal configuration', function() {
-        var config = new MutationConfiguration({code: 'some/path'});
+        var config = new MutationConfiguration({mutate: 'some/path'});
 
         expect(config.getDiscardDefaultIgnore()).toBeFalsy();
         expect(config.getIgnoreReplacements()).toEqual([]);
@@ -50,7 +50,7 @@ describe('MutationConfiguration', function() {
 
     it('does not add \'use strict\' to the defaults if discardDefaultIgnore is set', function() {
         var config = new MutationConfiguration({
-            code: 'some/path',
+            mutate: 'some/path',
             discardDefaultIgnore: true,
             ignore: [/use struct/]
         });

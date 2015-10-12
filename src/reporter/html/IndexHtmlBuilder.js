@@ -125,7 +125,7 @@ IndexHtmlBuilder.prototype.linkPathItems = function(options) {
 
     if (options.linkDirectoryOnly) {
         return linkedPath.concat(fileName);
-    }else {
+    } else {
         return linkedPath.concat(Templates.fileLinkTemplate({
             path: relativeLocation,
             separator: options.separator,

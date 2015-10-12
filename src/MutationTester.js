@@ -6,87 +6,77 @@
 (function(module) {
     'use strict';
 
-    var MutationConfiguration = require('./MutationConfiguration'),
-        MutationOperatorWarden = require('./MutationOperatorWarden'),
-        MutationOperatorRegistry = require('./MutationOperatorRegistry'),
-        MutationAnalyser = require('./MutationAnalyser'),
-        Mutator = require('./Mutator'),
-        JSParserWrapper = require('./JSParserWrapper'),
-        exec = require('sync-exec'),
+    var MutationScoreCalculator = require('./MutationScoreCalculator'),
+        MutationConfiguration = require('./MutationConfiguration'),
+        MutationFileTester = require('./MutationFileTester'),
+        ReportGenerator = require('./reporter/reportGenerator'),
+        PromiseUtils = require('./utils/PromiseUtils'),
         IOUtils = require('./utils/IOUtils'),
         _ = require('lodash'),
-        log4js = require('log4js'),
-        Q = require('q');
+        log4js = require('log4js');
 
     var logger = log4js.getLogger('MutationTester');
     var MutationTester = function(options) {
         this._config = new MutationConfiguration(options);
+        this._mutationScoreCalculator = new MutationScoreCalculator();
     };
 
     MutationTester.prototype.test = function(testCallback) {
-        var self = this,
-            promise = new Q({});
-        _.forEach(this._fileNames, function(fileName) {
-            promise = promise.then(function() {
-                return self.testFile(fileName, testCallback);
-            });
-        });
-
-        promise.fin(function() {
-
-        });
-    };
-
-    MutationTester.prototype.testFile = function(fileName, testCallback) {
         var config = this._config,
-            testPromise;
+            test = testCallback || config.getTester(),
+            promise = PromiseUtils.promisify(config.getBefore()), //run the before section in a promise
+            src,
+            fileMutationResults = [];
 
-        testPromise = IOUtils.promiseToReadFile(fileName).then(function (src) {
-            var moWarden = new MutationOperatorWarden(src, config, MutationOperatorRegistry.getMutationOperatorTypes()),
-                mutationDescriptions,
-                ast = JSParserWrapper.parse(src),
-                mutationResults = [],
-                mutator,
-                promise = new Q({});
-
-            mutator = new Mutator(src);
-            _.forEach(new MutationAnalyser(ast).collectMutations(moWarden), function(mutationOperatorSet) {
-                promise = promise
-                    .then(function () {
-                        mutationDescriptions = mutator.mutate(mutationOperatorSet);
-                        IOUtils.promiseToWriteFile(fileName, JSParserWrapper.generate(ast));
-                    })
-                    .then(function () {
-                        executeTest(testCallback);
-                    })
-                    .then(function (result) {
-                        mutationResults.push({fileName: fileName, mutations: mutationDescriptions, result: result});
-                        mutator.unMutate();
-                        return mutationResults;
-                    });
-            });
-            return promise;
-        }).then(function() {
-            logger.debug('Done mutating file: %s', fileName);
+        _.forEach(config.getMutate(), function(fileName) {
+            promise = PromiseUtils.runSequence( [
+                function() {return PromiseUtils.promisify(config.getBeforeEach());},                  // execute beforeEach
+                function() {return IOUtils.promiseToReadFile(fileName)},                              // read file
+                function(source) {src = source; mutateAndTestFile.call (this, fileName, src, test);}, // perform mutation testing on the file
+                function(mutationResults) {doAfterEach.call(this, fileName, src, mutationResults);},  // execute afterEach and return mutation results
+                function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}          // collect the results
+            ], promise, _.bind(handleError, this));
         });
 
-        return testPromise;
+        promise.done(function() {
+            config.getAfter()(function() { //run possible post processing
+                logger.info('Mutation Test complete');
+            });
+        });
     };
 
-
-    function executeTest(test) {
-        var deferred = Q.defer();
-        if (typeof test === 'string') {
-            var execResult = exec(test);
-            deferred.resolve(execResult.status);
-        } else {
-            test(function (status) {
-                deferred.resolve(status);
-            });
-        }
-        return deferred.promise;
+    function mutateAndTestFile(fileName, src, test) {
+        var mutationFileTester = new MutationFileTester(fileName, this._config, this._mutationScoreCalculator);
+        return mutationFileTester.testFile(src, test);
     }
 
+    function doAfterEach(fileName, src, mutationResults) {
+        var config = this._config;
+        return PromiseUtils.promisify(config.getAfterEach())
+            .then(function() {
+                var fileMutationResult = {
+                    stats: this._mutationScoreCalculator.getScorePerFile(fileName),
+                    src: src,
+                    fileName: fileName,
+                    mutationResults: mutationResults
+                };
+                ReportGenerator.generate(config.getReporters(), fileMutationResult);
+                logger.info('Done mutating file: %s', fileName);
+                return fileMutationResult;
+            })
+    }
+
+    function handleError(error) {
+        var mutationScoreCalculator = this._mutationScoreCalculator;
+
+        logger.error('An exception occurred after mutating the file: %s', fileName);
+        logger.error('Error message was: %s', error.message || error);
+        if (error.severity === TestStatus.FATAL) {
+            logger.error('Error status was FATAL. All processing will now stop.');
+            process.exit(1);
+        }
+        mutationScoreCalculator && mutationScoreCalculator.calculateScore(fileName, TestStatus.ERROR, 0);
+    }
 
     module.exports = MutationTester;
 })(module);

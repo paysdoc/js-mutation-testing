@@ -9,6 +9,57 @@ This library is still under construction. It is designed to expose and improve t
 
 ### Options
 
+##### options.mutate
+**Required**
+Type: `String` or `[String]`
+
+List of source code files that should be mutation tested.
+
+##### options.test
+**Required**
+Type: `String` or `Function`
+
+This test is executed for every Mutation. If it passes, this mutation is reported as 'survived'.
+
+##### options.ignore
+_optional_
+Type: `String` or `RegExp` or `[String and/or RegExp]`
+Default: `/('use strict'|"use strict");/`
+
+Code that matches with any of the supplied regular expressions will not be mutated in any way.
+
+Note that, by default, mutations on the strict mode keyword `'use strict'` will be ignored. If you really do want to mutate it, this can be done by providing the `options.discardDefaultIgnore` option (see below).
+
+##### options.ignoreReplacements
+_optional_
+Type: `String` or `RegExp` or `[String and/or RegExp]`
+
+Mutation replacements that match with any of the supplied regular expressions will not be introduced.
+
+##### options.excludeMutations
+_optional_
+Type: `Object`
+
+A set of properties, indicating whether certain mutations should be excluded for all files. See below for a list of available mutations.
+
+##### options.mutateProductionCode
+_optional_
+Type: `Boolean`
+Default: `false`
+
+When true, code is not copied to a temporary directory and mutated there, but instead the original production code is mutated, which can speed up your tests.
+
+_Be careful when using this option_, as, in case the mutation process does not exit correctly, your code will be left mutated.
+
+##### options.discardDefaultIgnore
+_optional_
+Type: `Boolean`
+Default: `false`
+
+When true, mutations that are ignored by default (see `options.ignore`, above) will no longer be ignored.
+
+We do not really see any relevant use case for this, but did not want to make it impossible to perform certain mutations either. Hence the existence of this configuration option.
+
 #### Reporting options
 
 ##### options.logLevel
@@ -59,55 +110,6 @@ Type: `Number`
 Default: 80
 
 The maximum reported length of the mutation that has been done. When set to `0`, the full mutation is logged regardless of its length.
-
-
-#### Other options
-
-##### options.ignore
-_optional_
-Type: `String` or `RegExp` or `[String and/or RegExp]`
-Default: `/('use strict'|"use strict");/`
-
-Code that matches with any of the supplied regular expressions will not be mutated in any way.
-
-Note that, by default, mutations on the strict mode keyword `'use strict'` will be ignored. If you really do want to mutate it, this can be done by providing the `options.discardDefaultIgnore` option (see below).
-
-##### options.ignoreReplacements
-_optional_
-Type: `String` or `RegExp` or `[String and/or RegExp]`
-
-Mutation replacements that match with any of the supplied regular expressions will not be introduced.
-
-##### options.excludeMutations
-_optional_
-Type: `Object`
-
-A set of properties, indicating whether certain mutations should be excluded for all files. See below for a list of available mutations.
-
-##### options.mutateProductionCode
-_optional_
-Type: `Boolean`
-Default: `false`
-
-When true, code is not copied to a temporary directory and mutated there, but instead the original production code is mutated, which can speed up your tests.
-
-_Be careful when using this option_, as, in case the mutation process does not exit correctly, your code will be left mutated.
-
-##### options.discardDefaultIgnore
-_optional_
-Type: `Boolean`
-Default: `false`
-
-When true, mutations that are ignored by default (see `options.ignore`, above) will no longer be ignored.
-
-We do not really see any relevant use case for this, but did not want to make it impossible to perform certain mutations either. Hence the existence of this configuration option.
-
-##### options.test
-_optional_
-Type: `String` or `Function`
-
-This test is executed for every Mutation. If it passes, this mutation is reported as 'survived'.
-
 
 ### Usage Examples
 ```to be added later```
