@@ -11,6 +11,7 @@
  * Licensed under the MIT license.
  */
 (function (module){
+    'use strict';
 
     var _ = require('lodash'),
         ExclusionUtils = require('./utils/ExclusionUtils');

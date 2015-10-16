@@ -11,6 +11,7 @@
         MutationFileTester = require('./MutationFileTester'),
         ReportGenerator = require('./reporter/reportGenerator'),
         PromiseUtils = require('./utils/PromiseUtils'),
+        TestStatus = require('./TestStatus'),
         IOUtils = require('./utils/IOUtils'),
         _ = require('lodash'),
         log4js = require('log4js');
@@ -23,19 +24,20 @@
 
     MutationTester.prototype.test = function(testCallback) {
         var config = this._config,
-            test = testCallback || config.getTester(),
             promise = PromiseUtils.promisify(config.getBefore()), //run the before section in a promise
+            test = testCallback || config.getTester(),
+            self = this,
             src,
             fileMutationResults = [];
 
         _.forEach(config.getMutate(), function(fileName) {
             promise = PromiseUtils.runSequence( [
                 function() {return PromiseUtils.promisify(config.getBeforeEach());},                  // execute beforeEach
-                function() {return IOUtils.promiseToReadFile(fileName)},                              // read file
-                function(source) {src = source; mutateAndTestFile.call (this, fileName, src, test);}, // perform mutation testing on the file
-                function(mutationResults) {doAfterEach.call(this, fileName, src, mutationResults);},  // execute afterEach and return mutation results
+                function() {return IOUtils.promiseToReadFile(fileName);},                              // read file
+                function(source) {src = source; mutateAndTestFile(fileName, src, test, self);}, // perform mutation testing on the file
+                function(mutationResults) {doAfterEach(fileName, src, mutationResults, self);},  // execute afterEach and return mutation results
                 function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}          // collect the results
-            ], promise, _.bind(handleError, this));
+            ], promise, function(error) {handleError(error, fileName, self);});
         });
 
         promise.done(function() {
@@ -45,13 +47,13 @@
         });
     };
 
-    function mutateAndTestFile(fileName, src, test) {
-        var mutationFileTester = new MutationFileTester(fileName, this._config, this._mutationScoreCalculator);
+    function mutateAndTestFile(fileName, src, test, ctx) {
+        var mutationFileTester = new MutationFileTester(fileName, ctx._config, ctx._mutationScoreCalculator);
         return mutationFileTester.testFile(src, test);
     }
 
-    function doAfterEach(fileName, src, mutationResults) {
-        var config = this._config;
+    function doAfterEach(fileName, src, mutationResults, ctx) {
+        var config = ctx._config;
         return PromiseUtils.promisify(config.getAfterEach())
             .then(function() {
                 var fileMutationResult = {
@@ -63,11 +65,11 @@
                 ReportGenerator.generate(config.getReporters(), fileMutationResult);
                 logger.info('Done mutating file: %s', fileName);
                 return fileMutationResult;
-            })
+            });
     }
 
-    function handleError(error) {
-        var mutationScoreCalculator = this._mutationScoreCalculator;
+    function handleError(error, fileName, ctx) {
+        var mutationScoreCalculator = ctx._mutationScoreCalculator;
 
         logger.error('An exception occurred after mutating the file: %s', fileName);
         logger.error('Error message was: %s', error.message || error);

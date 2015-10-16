@@ -17,7 +17,8 @@
         TestStatus = require('./TestStatus'),
         Mutator = require('./Mutator'),
         exec = require('sync-exec'),
-        _ = require('lodash');
+        _ = require('lodash'),
+        Q = require('q');
 
     var MutationFileTester = function(fileName, config, mutationScoreCalculator) {
         this._fileName = fileName;
@@ -42,7 +43,7 @@
             function mutateAndWriteFile() {
                 var mutationDescriptions = mutator.mutate(mutationOperatorSet);
                 return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.generate(ast))
-                    .then(function() {return mutationDescriptions});
+                    .then(function() {return mutationDescriptions;});
             }
 
             function postProcessing(result) {

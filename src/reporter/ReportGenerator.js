@@ -10,13 +10,12 @@
         path = require('path'),
         HtmlReporter = require('./html/HtmlReporter'),
         IOUtils = require('../utils/IOUtils'),
+        TestStatus = require('../TestStatus'),
         DEFAULT_DIR = path.join('reports', 'grunt-mutation-testing');
 
     var logger = log4js.getLogger('ReportGenerator');
 
     module.exports.generate = function(config, results, cb) {
-        'use strict';
-
         var dir = config.dir || DEFAULT_DIR,
             report = new HtmlReporter(dir, config);
 
