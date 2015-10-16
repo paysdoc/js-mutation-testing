@@ -15,10 +15,14 @@
      * @returns {*|d.promise|Function|promise|r.promise}
      */
     module.exports.promisify = function(cb) {
-        var dfd = Q.defer();
+        var dfd;
+
+        if (Q.isPromise(cb)) {return cb;}
+        dfd = Q.defer();
         cb(function(result) {
             dfd.resolve(result);
         });
+
         return dfd.promise;
     };
 
