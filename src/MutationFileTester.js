@@ -35,7 +35,7 @@
             mutationAnalyser = new MutationAnalyser(ast),
             mutationDescriptions,
             mutationResults = [],
-            mutator,
+            mutator = new Mutator(src),
             promise = new Q({});
 
         mutator = new Mutator(src);
@@ -67,11 +67,11 @@
         if (typeof test === 'string') {
             testPromise = PromiseUtils.promisify(function(resolver) {
                 resolver(exec(test).status);
-            });
+            }, true);
         } else {
             testPromise = PromiseUtils.promisify(function(resolver) {
                 test(function (status) { resolver(status); });
-            });
+            }, true);
         }
         return testPromise.then(function(returnCode) {
             return returnCode === 0 ? TestStatus.KILLED : TestStatus.SURVIVED;
