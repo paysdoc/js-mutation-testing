@@ -7,15 +7,24 @@ describe('PromiseUtils', function() {
     var PromiseUtils = require('../../../src/utils/PromiseUtils'),
         Q = require('q'), resultOrder,
         f1 = promiseWithAsync(function() {resultOrder.push('f1');}, 150),
-        f2 = promiseWithAsync(function() {resultOrder.push('f2');}, 10),
-        f3 = promiseWithAsync(function() {resultOrder.push('f3');}, Math.random()*100);
+        f2 = promiseWithAsync(function() {resultOrder.push('f2');}, Math.random()*100),
+        f3 = function() {resultOrder.push('f3');};
 
     beforeEach(function() {
         resultOrder = [];
     });
 
     it('turns a function into a promise', function(done) {
-        var cbPromise = PromiseUtils.promisify(function(cb) {cb('result');}).then(function(result) {
+        var result,
+            cbPromise = PromiseUtils.promisify(function() {result = 'result';}).then(function() {
+            expect(result).toEqual('result');
+            done();
+        });
+        expect(cbPromise.then).toBeTruthy();
+    });
+
+    it('turns a function with its own resolver into a promise', function(done) {
+        var cbPromise = PromiseUtils.promisify(function(cb) {cb('result');}, true).then(function(result) {
             expect(result).toEqual('result');
             done();
         });
@@ -23,12 +32,12 @@ describe('PromiseUtils', function() {
     });
 
     it('retains the existing promise if passed to promisify', function() {
-        var existingPromise = Q(function() {return 'dummy'});
+        var existingPromise = new Q(function() {return 'dummy';});
         expect(PromiseUtils.promisify(existingPromise)).toBe(existingPromise);
     });
 
     it('runs all given functions as a sequence of promises', function(done) {
-        PromiseUtils.runSequence([f1, f2, f3], Q({})).then(function() {
+        PromiseUtils.runSequence([f1, f2, f3], new Q({})).then(function() {
             expect(resultOrder).toEqual(['f1', 'f2', 'f3']);
             done();
         });
@@ -48,7 +57,7 @@ describe('PromiseUtils', function() {
         return function() {
             return PromiseUtils.promisify(function(resolve) {
                 setTimeout(function() {cb(); resolve();}, timeout);
-            });
-        }
+            }, true);
+        };
     }
 });

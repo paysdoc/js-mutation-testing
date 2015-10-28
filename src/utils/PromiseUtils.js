@@ -11,17 +11,24 @@
 
     /**
      * turns given callback into a promise
-     * @param cb callback to be turned into a function
-     * @returns {*|d.promise|Function|promise|r.promise}
+     * @param {function} fn function to be turned into a function
+     * @param {boolean} willResolve when set to true 'fn' will call the resolver itself, otherwise the resolver will be invoked by promisify
+     * @returns {promise}
      */
-    module.exports.promisify = function(cb) {
-        var dfd;
+    module.exports.promisify = function(fn, willResolve) {
+        var dfd,
+            argsArray = Array.prototype.slice.call(arguments, 2),
+            doResolve = function(result) {dfd.resolve(result);};
 
-        if (Q.isPromise(cb)) {return cb;}
+        if (Q.isPromise(fn)) {return fn;}
         dfd = Q.defer();
-        cb(function(result) {
-            dfd.resolve(result);
-        });
+        if(willResolve) {
+            argsArray.splice(0, 0, doResolve);
+            fn.apply({}, argsArray);
+        } else {
+            fn.apply({}, argsArray);
+            dfd.resolve();
+        }
 
         return dfd.promise;
     };
