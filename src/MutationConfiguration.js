@@ -52,7 +52,7 @@
         // ensure that ignore and ignoreReplacement are arrays and are added to the rawConfig
         Array.prototype.push.apply(ignore, ensureArray(configIgnore));
         config.ignore = ignore;
-        config.ignoreReplacements = rawConfig && rawConfig.ignoreReplacements? ensureArray(rawConfig.ignoreReplacements) : [];
+        config.ignoreReplacements = ensureArray(rawConfig && rawConfig.ignoreReplacements);
 
         config.mutate = expandFiles(config.mutate, config.basePath);
 

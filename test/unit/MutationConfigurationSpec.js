@@ -64,4 +64,15 @@ describe('MutationConfiguration', function() {
         var breakit = function() {return new MutationConfiguration(src)};
         expect(breakit).toThrowError('Not all required options have been set');
     });
+
+    it('has maintenance functions (before, after, beforeEach, etc...) that are don\'t have getters', function() {
+        var config = new MutationConfiguration({mutate: 'some/path', ignore: [/use struct/]}),
+            dummySpy = jasmine.createSpy('dummy');
+        config.getBefore()(dummySpy);
+        config.getBeforeEach()(dummySpy);
+        config.getAfter()(dummySpy);
+        config.getAfterEach()(dummySpy);
+
+        expect(dummySpy.calls.count()).toBe(4);
+    });
 });
