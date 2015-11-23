@@ -23,11 +23,10 @@
         if (Q.isPromise(fn)) {return fn;}
         dfd = Q.defer();
         if(willResolve) {
-            argsArray.splice(0, 0, doResolve);
-            fn.apply({}, argsArray);
+            argsArray.splice(0, 0, doResolve); // add doResolve callback to start of args array
+            fn.apply({}, argsArray);           // and call the function knowing that the callback is the first argument
         } else {
-            fn.apply({}, argsArray);
-            dfd.resolve();
+            dfd.resolve(fn.apply({}, argsArray)); // just let the resolver call the function
         }
 
         return dfd.promise;
@@ -41,6 +40,6 @@
      */
     module.exports.runSequence = function(functions, promise, errorCB) {
         var errorHandler = errorCB || function(error) {throw error;};
-        return _.reduce(functions, Q.when, promise || new Q()).catch(function (reason) {errorHandler(reason);});
+        return _.reduce(functions, Q.when, promise || new Q({})).catch(function (reason) {errorHandler(reason);});
     };
 })(module);

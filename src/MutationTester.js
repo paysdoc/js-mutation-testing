@@ -32,18 +32,22 @@
 
         _.forEach(config.getMutate(), function(fileName) {
             promise = PromiseUtils.runSequence( [
-                function() {return PromiseUtils.promisify(config.getBeforeEach());},                  // execute beforeEach
-                function() {return IOUtils.promiseToReadFile(fileName);},                              // read file
+                config.getBeforeEach,                                                           // execute beforeEach
+                function() {return IOUtils.promiseToReadFile(fileName);},                       // read file
                 function(source) {src = source; mutateAndTestFile(fileName, src, test, self);}, // perform mutation testing on the file
-                function(mutationResults) {doAfterEach(fileName, src, mutationResults, self);},  // execute afterEach and return mutation results
-                function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}          // collect the results
+                function(mutationResults) {doReporting(fileName, src, mutationResults, self);}, // do reporting
+                config.getAfterEach,                                                            // execute afterEach
+                function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}    // collect the results
             ], promise, function(error) {handleError(error, fileName, self);});
         });
 
-        promise.done(function() {
-            config.getAfter()(function() { //run possible post processing
-                logger.info('Mutation Test complete');
-            });
+        promise.finally(function() {
+            PromiseUtils.promisify(config.getAfter())
+                .then(function() {                                //run possible post processing
+                    logger.info('Mutation Test complete');
+                    return fileMutationResults;
+                }
+            );
         });
     };
 
@@ -52,20 +56,18 @@
         return mutationFileTester.testFile(src, test);
     }
 
-    function doAfterEach(fileName, src, mutationResults, ctx) {
+    function doReporting(fileName, src, mutationResults, ctx) {
         var config = ctx._config;
-        return PromiseUtils.promisify(config.getAfterEach())
-            .then(function() {
-                var fileMutationResult = {
-                    stats: this._mutationScoreCalculator.getScorePerFile(fileName),
-                    src: src,
-                    fileName: fileName,
-                    mutationResults: mutationResults
-                };
-                ReportGenerator.generate(config.getReporters(), fileMutationResult);
-                logger.info('Done mutating file: %s', fileName);
-                return fileMutationResult;
-            });
+        var fileMutationResult = {
+            stats: ctx._mutationScoreCalculator.getScorePerFile(fileName),
+            src: src,
+            fileName: fileName,
+            mutationResults: mutationResults
+        };
+        ReportGenerator.generate(config.getReporters(), fileMutationResult, function() {
+            logger.info('Done mutating file: %s', fileName);
+        });
+        return fileMutationResult;
     }
 
     function handleError(error, fileName, ctx) {
