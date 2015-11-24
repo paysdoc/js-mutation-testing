@@ -14,7 +14,7 @@
 
     MutationScoreCalculator.prototype.calculateScore = function(fileName, testStatus, ignoredMutations) {
         this._scorePerFile[fileName] = this._scorePerFile[fileName] || {killed: 0, survived: 0, ignored: 0, error: 0};
-        this._scorePerFile[fileName] += ignoredMutations;
+        this._scorePerFile[fileName].ignored += ignoredMutations;
         if (testStatus === TestStatus.KILLED) {
             this._scorePerFile[fileName].killed++;
         } else if (testStatus === TestStatus.ERROR) {
@@ -33,7 +33,9 @@
             result.killed += score.killed;
             result.survived += score.survived;
             result.ignored += score.ignored;
-        }, {killed: 0, survived: 0, ignored: 0});
+            result.error += score.error;
+            return result;
+        }, {killed: 0, survived: 0, ignored: 0, error: 0});
     };
 
     module.exports = MutationScoreCalculator;
