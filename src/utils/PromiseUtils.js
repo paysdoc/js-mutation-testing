@@ -13,7 +13,7 @@
      * turns given callback into a promise
      * @param {function} fn function to be turned into a function
      * @param {boolean} willResolve when set to true 'fn' will call the resolver itself, otherwise the resolver will be invoked by promisify
-     * @returns {promise}
+     * @returns {Q} A promise that will resolve when the given function has completed
      */
     module.exports.promisify = function(fn, willResolve) {
         var dfd,

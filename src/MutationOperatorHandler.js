@@ -12,8 +12,10 @@
 (function (module) {
     'use strict';
 
-    var _ = require('lodash');
+    var _ = require('lodash'),
+        log4js = require('log4js');
 
+    var logger = log4js.getLogger('MutationOperatorHandler');
     function MutationOperatorHandler() {
         this._moStack = [];
     }
@@ -21,7 +23,9 @@
     MutationOperatorHandler.prototype.applyMutation = function(mutationOperatorSet) {
         var result = [];
         _.forEach(mutationOperatorSet, function(operator) {
+            logger.trace('applying mutation', operator.code);
             result.push(operator.apply());
+            logger.trace('applied mutation', result);
         });
         this._moStack.push(mutationOperatorSet);
         return result;

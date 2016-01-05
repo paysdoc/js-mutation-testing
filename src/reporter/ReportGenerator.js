@@ -19,7 +19,7 @@
         var dir = config.dir || DEFAULT_DIR,
             report = new HtmlReporter(dir, config);
 
-        logger.trace('Generating the mutation HTML report...');
+        logger.trace('Generating the mutation HTML report...' + JSON.stringify(results));
 
         report.create(results)
             .then(function() {
@@ -41,6 +41,7 @@
                     ' Removed ' + truncateReplacement(config, mutatedCode) + ' -> ' + testStatus
                 );
 
+        logger.trace('creating log message', mutation, testStatus === TestStatus.SURVIVED, message);
         return {
             mutation: mutation,
             survived: testStatus === TestStatus.SURVIVED,

@@ -10,8 +10,10 @@
         ArrayMutatorUtil = require('../utils/ArrayMutatorUtil'),
         MutationOperator = require('./MutationOperator');
 
+    var code = 'BLOCK_STATEMENT';
     function BlockStatementMO (astNode, index) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._originalArray = _.clone(this._astNode);
         this._original = this._astNode[index];
     }
@@ -47,5 +49,5 @@
 
         return mos;
     };
-    module.exports.code = 'BLOCK_STATEMENT';
+    module.exports.code = code;
 })(module);

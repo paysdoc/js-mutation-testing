@@ -5,15 +5,15 @@
 describe('MutationTester', function() {
 
     var proxyquire = require('proxyquire'),
-        noop = function() {},
-        mockAfter = noop,
+        dummyResolver = function(cb) {cb && cb();},
+        mockAfter = dummyResolver,
         mockConfiguration = {
-            getBeforeEach: function() {return noop;},
-            getBefore: function() {return noop;},
+            getBeforeEach: function() {return dummyResolver;},
+            getBefore: function() {return dummyResolver;},
             getAfter: function() {return mockAfter;},
-            getAfterEach: function() {return noop;},
-            getTester: function() {return noop;},
-            getReporters: noop,
+            getAfterEach: function() {return dummyResolver;},
+            getTester: function() {return dummyResolver;},
+            getReporters: dummyResolver,
             getMutate: function() {return ['file1', 'file2'];}
         },
         mockMutationScoreCalculator = {
@@ -52,19 +52,19 @@ describe('MutationTester', function() {
         mockAfter = function() {
             expect(mutationFileTesterSpy.calls.count()).toBe(1);
             expect(loggerSpy.info.calls.count()).toBe(1);
-            //expect(mockReportGenerator.generate.calls.count()).toBe(1);
+            expect(mockReportGenerator.generate.calls.count()).toBe(1);
             expect(loggerSpy.info).toHaveBeenCalledWith('Done mutating file: %s', 'file2');
-            expect(mutationFileTesterSpy).toHaveBeenCalledWith('some source code', mockConfiguration.getTester());
+            expect(mutationFileTesterSpy).toHaveBeenCalledWith('some source code', jasmine.any(Function));
             done();
         };
-        new MutationTester().test();
+        new MutationTester().test(dummyResolver);
     });
 
     it('handles a FATAL error by calling process.exit', function(done) {
         var originalExit = process.exit;
         var exitSpy = jasmine.createSpy('process', 'exit');
 
-        exitSpy.and.callFake(noop);
+        exitSpy.and.callFake(dummyResolver);
         Object.defineProperty(process, 'exit', {value: exitSpy});
 
         mockAfter = function() {

@@ -10,8 +10,10 @@
         ArrayMutatorUtil = require('../utils/ArrayMutatorUtil'),
         MutationOperator = require('./MutationOperator');
 
+    var code = 'ARRAY';
     function ArrayExpressionMO (astNode, index) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._originalArray = _.clone(this._astNode.elements);
         this._original = this._astNode.elements[index];
     }
@@ -37,7 +39,7 @@
         };
     };
 
-    module.exports.code = 'ARRAY';
+    module.exports.code = code;
     module.exports.create = function(astNode) {
         var mos = [];
 

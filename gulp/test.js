@@ -5,22 +5,34 @@
  */
 var gulp = require('gulp'),
     jasmine = require('gulp-jasmine'),
-    istanbul = require('gulp-istanbul');
+    istanbul = require('gulp-istanbul'),
+    path = require('path'),
+    log4js = require('log4js'),
+    MutationTester = require('../src/MutationTester');
 
 gulp.task('test', function() {
     'use strict';
 
-    gulp.src(['src/**/*.js'])
-        .pipe(istanbul({includeUntested:true}))
-        .pipe(istanbul.hookRequire())
-        .on('finish', function() {
-            gulp.src(['test/unit/**/*Spec.js'])
-                .pipe(jasmine())
-                .pipe(istanbul.writeReports())
-                .on('error', function(err) {throw err;});
-    });
+    testRunner({src: ['src/**/*.js'], specs: ['test/unit/**/*Spec.js']});
 });
 
 gulp.task('e2e', function() {
-    //TODO: implement
+    'use strict';
+
+    new MutationTester({mutate: ['../test/e2e/code/arguments.js'], specs: ['../test/e2e/code/arguments-test.js'], basePath: __dirname}). test(testRunner);
 });
+
+function testRunner(config, cb) {
+    'use strict';
+
+    gulp.src(config.src)
+        .pipe(istanbul({includeUntested:true}))
+        .pipe(istanbul.hookRequire())
+        .on('finish', function() {
+            gulp.src(config.specs)
+                .pipe(jasmine())
+                .pipe(istanbul.writeReports())
+                .on('finish', function() {cb && cb();})
+                .on('error', function(err) {throw err;});
+        });
+}

@@ -10,8 +10,10 @@
         ArrayMutatorUtil = require('../utils/ArrayMutatorUtil'),
         MutationUtils = require('../utils/MutationUtils');
 
+    var code = 'OBJECT';
     function ObjectMO (astNode, index) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._original = this._astNode.properties[index];
         this._originalArray = _.clone(this._astNode.properties);
     }
@@ -49,5 +51,5 @@
 
         return mos;
     };
-    module.exports.code = 'OBJECT';
+    module.exports.code = code;
 })(module);

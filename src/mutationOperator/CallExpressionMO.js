@@ -12,6 +12,7 @@
         CallExpressionArgsMO = require('./CallExpressionArgsMO'),
         CallExpressionSelfMO = require('./CallExpressionSelfMO');
 
+    var code = 'METHOD_CALL';
     module.exports.create = function(astNode) {
         var args = astNode.arguments,
             replacement,
@@ -37,5 +38,5 @@
 
         return mos;
     };
-    module.exports.code = 'METHOD_CALL';
+    module.exports.code = code;
 })(module);

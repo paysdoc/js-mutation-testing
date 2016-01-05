@@ -1,6 +1,6 @@
 {
   "name": "js-mutation-testing",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "JavaScript Mutation Testing. Tests your tests by mutating the code.",
   "repository": {
     "type": "git",

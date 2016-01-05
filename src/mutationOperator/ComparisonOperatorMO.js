@@ -16,8 +16,10 @@
             '>=': {boundary: '>', negation: '<'}
         };
 
+    var code = 'COMPARISON';
     function ComparisonOperatorMO (astNode, replacement) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._replacement = replacement;
     }
 
@@ -55,5 +57,5 @@
         }
         return mos;
     };
-    module.exports.code = 'COMPARISON';
+    module.exports.code = code;
 })(module);

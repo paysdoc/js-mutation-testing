@@ -8,11 +8,12 @@
     'use strict';
 
     var _ = require('lodash'),
-        MutationOperatorRegistry = require('./MutationOperatorRegistry');
+        MutationOperatorRegistry = require('./MutationOperatorRegistry'),
+        log4js = require('log4js');
 
     function MutationAnalyser(ast) {
         this._ast = ast;
-        this._mutationOperators = [];
+        this._mutationOperatorSets = [];
         this._ignored = [];
         this._excluded = [];
     }
@@ -23,7 +24,7 @@
      * @returns {Array} list of mutation operators that can be applied to this code
      */
     MutationAnalyser.prototype.collectMutations = function(moWarden) {
-        var mutationOperators = this._mutationOperators,
+        var mutationOperatorSets = this._mutationOperatorSets,
             ignoredMOs = this._ignored,
             excludedMOs = this._excluded;
 
@@ -34,7 +35,7 @@
             if (astNode) {
 
                 selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(astNode, moWarden);
-                Array.prototype.push.apply(mutationOperators, selectedMutationOperators.included); //using push.apply to push array content instead of whole array
+                Array.prototype.push.apply(mutationOperatorSets, selectedMutationOperators.included); //using push.apply to push array content instead of whole array (which can be empty)
                 Array.prototype.push.apply(ignoredMOs, selectedMutationOperators.ignored);
                 Array.prototype.push.apply(excludedMOs, selectedMutationOperators.excluded);
                 childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
@@ -46,15 +47,19 @@
             }
         }
 
-        if (!(mutationOperators && mutationOperators.length)) {
-            analyseNode(this._ast);
+        if (mutationOperatorSets && mutationOperatorSets.length) {
+            return this._mutationOperatorSets;
         }
 
-        return mutationOperators;
+        analyseNode(this._ast);
+        this._mutationOperatorSets = _.map(mutationOperatorSets, function(mutationOperator) {
+            return [mutationOperator]; //add operator as single-element array as the rest of the system considers the result to be a list of mutation operator sets (actual implementation will follow)
+        });
+        return this._mutationOperatorSets;
     };
 
     MutationAnalyser.prototype.getMutationOperators = function() {
-        return this._mutationOperators;
+        return this._mutationOperatorSets;
     };
 
     MutationAnalyser.prototype.getIgnored = function() {

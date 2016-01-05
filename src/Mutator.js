@@ -8,8 +8,10 @@
 
     var _ = require('lodash'),
         MutationOperatorHandler = require('./MutationOperatorHandler'),
-        JSParserWrapper = require('./JSParserWrapper');
+        JSParserWrapper = require('./JSParserWrapper'),
+        log4js = require('log4js');
 
+    var logger = log4js.getLogger('Mutator');
     var Mutator = function(src) {
         this._brackets = _.filter(JSParserWrapper.tokenize(src, {range: true}), function(token) {
             return token.type === "Punctuator" && token.value.match(/^[\(\)]$/gm);
@@ -27,7 +29,9 @@
             mutationDescriptions;
 
         this.unMutate();
+        logger.trace('handler:', this._handler, mutationOperatorSet);
         mutationDescriptions = this._handler.applyMutation(mutationOperatorSet);
+        logger.trace('applied mutation', mutationDescriptions);
         return _.reduce(mutationDescriptions, function(result, mutationDescription) {
             result.push(_.merge(mutationDescription, calibrateBeginAndEnd(mutationDescription.begin, mutationDescription.end, self._brackets)));
             return result;

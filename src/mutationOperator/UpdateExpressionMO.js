@@ -13,8 +13,10 @@
             '--': '++'
         };
 
+    var code = 'UPDATE_EXPRESSION';
     function UpdateExpressionMO (astNode) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._replacement = updateOperatorReplacements[astNode.operator];
     }
 
@@ -62,5 +64,5 @@
             return [];
         }
     };
-    module.exports.code = 'UPDATE_EXPRESSION';
+    module.exports.code = code;
 })(module);

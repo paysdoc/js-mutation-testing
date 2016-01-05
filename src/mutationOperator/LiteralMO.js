@@ -9,8 +9,10 @@
         LiteralUtils = require('../utils/LiteralUtils'),
         MutationOperator = require('./MutationOperator');
 
+    var code = 'LITERAL';
     function LiteralMO (astNode) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._replacement = LiteralUtils.determineReplacement(astNode.value);
     }
 
@@ -47,5 +49,5 @@
     module.exports.create = function(astNode) {
         return [new LiteralMO(astNode)];
     };
-    module.exports.code = 'LITERAL';
+    module.exports.code = code;
 })(module);

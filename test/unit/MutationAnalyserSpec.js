@@ -19,11 +19,11 @@ describe('MutationAnalyser', function() {
     var mockWarden = {
         getMOStatus: function(node, mutationOperator, MOCode) {
             if (MOCode === 'BLOCK_STATEMENT') {
-                return 'exclude'
+                return 'exclude';
             } else if (node.range[0] === 0 && node.range[1] === 12) {
-                return 'ignore'
+                return 'ignore';
             }
-            return 'include'
+            return 'include';
         }
     };
 

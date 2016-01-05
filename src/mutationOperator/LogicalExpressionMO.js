@@ -14,8 +14,10 @@
             '||': '&&'
         };
 
+    var code = 'LOGICAL_EXPRESSION';
     function LogicalExpressionMO(astNode) {
         MutationOperator.call(this, astNode);
+        this.code = code;
     }
 
     LogicalExpressionMO.prototype.apply = function () {
@@ -48,5 +50,5 @@
     module.exports.create = function(astNode){
         return operators.hasOwnProperty(astNode.operator) ? [new LogicalExpressionMO(astNode)] : [];
     };
-    module.exports.code = 'LOGICAL_EXPRESSION';
+    module.exports.code = code;
 })(module);

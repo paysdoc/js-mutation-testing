@@ -11,8 +11,10 @@
     var MutationUtils = require('../utils/MutationUtils'),
         MutationOperator = require('./MutationOperator');
 
+    var code = 'UNARY_EXPRESSION';
     function UnaryExpressionMO(astNode) {
         MutationOperator.call(this, astNode);
+        this.code = code;
     }
 
     UnaryExpressionMO.prototype.apply = function () {
@@ -45,5 +47,5 @@
     module.exports.create = function(astNode) {
         return astNode.operator ? [new UnaryExpressionMO(astNode)] : [];
     };
-    module.exports.code = 'UNARY_EXPRESSION';
+    module.exports.code = code;
 })(module);

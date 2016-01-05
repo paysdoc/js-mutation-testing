@@ -17,7 +17,7 @@ describe('MutationFileTester', function() {
             './MutationOperatorRegistry': {getMutationOperatorTypes: function() {}},
             './MutationOperatorWarden': function() {},
             './reporter/ReportGenerator': {createMutationLogMessage: createMutationLogMessageSpy},
-            './MutationAnalyser': function() {return {collectMutations: function() {return ['ms1', 'ms2'];}, getIgnored: function(){}};},
+            './MutationAnalyser': function() {return {collectMutations: function() {return [['ms1'], ['ms2']];}, getIgnored: function(){}};},
             './JSParserWrapper': {generate: function(){}},
             './utils/IOUtils': {promiseToWriteFile: function() {return PromiseUtils.promisify(promiseToWriteFileSpy);}},
             './Mutator': function() {return {mutate: function(param) {return param;}, unMutate: function() {}};},

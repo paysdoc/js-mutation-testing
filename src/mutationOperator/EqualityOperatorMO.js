@@ -16,8 +16,10 @@
             '!=': '=='
         };
 
+    var code = 'EQUALITY';
     function EqualityOperatorMO (astNode, replacement) {
         MutationOperator.call(this, astNode);
+        this.code = code;
         this._replacement = replacement;
     }
 
@@ -51,6 +53,6 @@
         return operators.hasOwnProperty(astNode.operator) ? [new EqualityOperatorMO(astNode, operators[astNode.operator])] : [];
     };
 
-    module.exports.code = 'EQUALITY';
+    module.exports.code = code;
     module.exports.exclude = true;
 })(module);

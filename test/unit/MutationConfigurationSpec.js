@@ -19,6 +19,7 @@ describe('MutationConfiguration', function() {
     it('creates getters from the properties in config', function() {
         var config = new MutationConfiguration({
             mutate: ['some/path', 'another/path'],
+            specs: 'some/spec/path',
             discardDefaultIgnore: false,
             ignore: [/use struct/],
             ignoreReplacements: '"MUTATION!"',
@@ -41,7 +42,7 @@ describe('MutationConfiguration', function() {
     });
 
     it('creates defaults with minimal configuration', function() {
-        var config = new MutationConfiguration({mutate: 'some/path'});
+        var config = new MutationConfiguration({mutate: 'some/path', specs: 'some/spec/path'});
 
         expect(config.getDiscardDefaultIgnore()).toBeFalsy();
         expect(config.getIgnoreReplacements()).toEqual([]);
@@ -51,6 +52,7 @@ describe('MutationConfiguration', function() {
     it('does not add \'use strict\' to the defaults if discardDefaultIgnore is set', function() {
         var config = new MutationConfiguration({
             mutate: 'some/path',
+            specs: 'some/spec/path',
             discardDefaultIgnore: true,
             ignore: [/use struct/]
         });
@@ -61,12 +63,12 @@ describe('MutationConfiguration', function() {
     });
 
     it('logs an error if required options are not set', function() {
-        var breakit = function() {return new MutationConfiguration(src)};
+        var breakit = function() {return new MutationConfiguration(src);};
         expect(breakit).toThrowError('Not all required options have been set');
     });
 
     it('has maintenance functions (before, after, beforeEach, etc...) that are don\'t have getters', function() {
-        var config = new MutationConfiguration({mutate: 'some/path', ignore: [/use struct/]}),
+        var config = new MutationConfiguration({mutate: 'some/path', specs: 'some/spec/path', ignore: [/use struct/]}),
             dummySpy = jasmine.createSpy('dummy');
         config.getBefore()(dummySpy);
         config.getBeforeEach()(dummySpy);

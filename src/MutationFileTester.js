@@ -17,9 +17,11 @@
         TestStatus = require('./TestStatus'),
         Mutator = require('./Mutator'),
         exec = require('sync-exec'),
+        log4js = require('log4js'),
         _ = require('lodash'),
         Q = require('q');
 
+    var logger = log4js.getLogger('MutationFileTester');
     var MutationFileTester = function(fileName, config, mutationScoreCalculator) {
         this._fileName = fileName;
         this._config = config.getMutate ? config : new MutationConfiguration(config);
@@ -41,12 +43,18 @@
         mutator = new Mutator(src);
         _.forEach(mutationAnalyser.collectMutations(moWarden), function (mutationOperatorSet) {
             function mutateAndWriteFile() {
+                logger.trace('applying mutation');
                 var mutationDescriptions = mutator.mutate(mutationOperatorSet);
+                logger.trace('writing file', fileName, JSParserWrapper.generate(ast));
                 return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.generate(ast))
-                    .then(function() {return mutationDescriptions;});
+                    .then(function() {
+                        logger.trace('mutation descriptions', mutationDescriptions);
+                        return mutationDescriptions;
+                    });
             }
 
             function postProcessing(result) {
+                logger.trace('post processing');
                 mutationResults.push(ReportGenerator.createMutationLogMessage(config, fileName, mutationDescriptions, src, result));
                 mutationScoreCalculator.calculateScore(fileName, result, mutationAnalyser.getIgnored());
                 mutator.unMutate();
@@ -58,7 +66,10 @@
                 postProcessing                          // revert the mutation and generate mutation report
             ], promise);
         });
-        return promise;
+
+        return promise.then(function() {
+            return mutationResults;
+        });
     };
 
     function executeTest(test) {

@@ -24,25 +24,26 @@
 
     MutationTester.prototype.test = function(testCallback) {
         var config = this._config,
-            promise = PromiseUtils.promisify(config.getBefore()), //run the before section in a promise
-            test = testCallback || config.getTester(),
+            promise = PromiseUtils.promisify(config.getBefore(), true), //run the before section in a promise
+            test = testCallback,
             self = this,
             src,
             fileMutationResults = [];
 
         _.forEach(config.getMutate(), function(fileName) {
             promise = PromiseUtils.runSequence( [
-                config.getBeforeEach,                                                           // execute beforeEach
+                PromiseUtils.promisify(config.getBeforeEach(), true),                           // execute beforeEach
                 function() {return IOUtils.promiseToReadFile(fileName);},                       // read file
                 function(source) {src = source; mutateAndTestFile(fileName, src, test, self);}, // perform mutation testing on the file
                 function(mutationResults) {doReporting(fileName, src, mutationResults, self);}, // do reporting
-                config.getAfterEach,                                                            // execute afterEach
+                PromiseUtils.promisify(config.getAfterEach(), true),                            // execute afterEach
                 function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}    // collect the results
             ], promise, function(error) {handleError(error, fileName, self);});
         });
 
         promise.finally(function() {
-            PromiseUtils.promisify(config.getAfter())
+            logger.trace('finally()');
+            PromiseUtils.promisify(config.getAfter(), true)
                 .then(function() {                                //run possible post processing
                     logger.info('Mutation Test complete');
                     return fileMutationResults;
@@ -52,11 +53,13 @@
     };
 
     function mutateAndTestFile(fileName, src, test, ctx) {
+        logger.trace('mutating and testing');
         var mutationFileTester = new MutationFileTester(fileName, ctx._config, ctx._mutationScoreCalculator);
         return mutationFileTester.testFile(src, test);
     }
 
     function doReporting(fileName, src, mutationResults, ctx) {
+        logger.trace('doing reporting');
         var config = ctx._config;
         var fileMutationResult = {
             stats: ctx._mutationScoreCalculator.getScorePerFile(fileName),

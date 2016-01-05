@@ -20,7 +20,6 @@
     var DEFAULT_OPTIONS = {
             before: CALL_DONE,
             beforeEach: CALL_DONE,
-            test: CALL_DONE,
             afterEach: CALL_DONE,
             after: CALL_DONE,
 
@@ -37,7 +36,8 @@
             console: true // By default, report only to the console, which takes no additional configuration
         },
         REQUIRED_OPTIONS = [
-            'mutate' // The files to perform the mutation tests on
+            'mutate', // The files to perform the mutation tests on
+            'specs'   // The unit tests that (mutated) files are tested against
         ];
 
     var Configuration = function(rawConfig) {
