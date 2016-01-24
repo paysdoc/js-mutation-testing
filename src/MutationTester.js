@@ -9,7 +9,7 @@
     var MutationScoreCalculator = require('./MutationScoreCalculator'),
         MutationConfiguration = require('./MutationConfiguration'),
         MutationFileTester = require('./MutationFileTester'),
-        ReportGenerator = require('./reporter/reportGenerator'),
+        ReportGenerator = require('./reporter/ReportGenerator'),
         PromiseUtils = require('./utils/PromiseUtils'),
         TestStatus = require('./TestStatus'),
         IOUtils = require('./utils/IOUtils'),

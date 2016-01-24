@@ -41,7 +41,7 @@ describe('MutationTester', function() {
             './MutationConfiguration': function() {return mockConfiguration;},
             './MutationFileTester': function() {return {testFile: mutationFileTesterSpy};},
             './utils/IOUtils': mockIOUtils,
-            './reporter/reportGenerator': mockReportGenerator,
+            './reporter/ReportGenerator': mockReportGenerator,
             'log4js': {getLogger: function() {return loggerSpy;}}
         });
     });

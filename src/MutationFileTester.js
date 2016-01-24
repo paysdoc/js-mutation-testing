@@ -12,7 +12,7 @@
         ReportGenerator = require('./reporter/ReportGenerator'),
         MutationAnalyser = require('./MutationAnalyser'),
         JSParserWrapper = require('./JSParserWrapper'),
-        PromiseUtils = require('./utils/promiseUtils'),
+        PromiseUtils = require('./utils/PromiseUtils'),
         IOUtils = require('./utils/IOUtils'),
         TestStatus = require('./TestStatus'),
         Mutator = require('./Mutator'),
