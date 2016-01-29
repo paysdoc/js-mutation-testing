@@ -6,7 +6,7 @@
 describe('HtmlReporter', function() {
     'use strict';
 
-    var promiseResolver = require('../../../util/dummyPromiseResolver'),
+    var promiseResolver = require('../../../util/DummyPromiseResolver'),
         fileHtmlBuilderSpy = {createFileReports: promiseResolver.resolve},
         indexHtmlBuilderSpy = jasmine.createSpyObj('IndexHtmlBuilder', ['createIndexFile']),
         proxyquire = require('proxyquire'),

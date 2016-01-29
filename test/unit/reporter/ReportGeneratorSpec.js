@@ -7,7 +7,7 @@ describe('Report Generator', function() {
     'use strict';
 
     var loggerStub = jasmine.createSpyObj('logger', ['trace', 'info', 'error']),
-        promiseResolver = require('../../util/dummyPromiseResolver'),
+        promiseResolver = require('../../util/DummyPromiseResolver'),
         proxyquire = require('proxyquire');
 
     var reportGenerator, resolve, completionTest;
