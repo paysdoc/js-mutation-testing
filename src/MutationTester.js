@@ -13,8 +13,10 @@
         PromiseUtils = require('./utils/PromiseUtils'),
         TestStatus = require('./TestStatus'),
         IOUtils = require('./utils/IOUtils'),
-        _ = require('lodash'),
-        log4js = require('log4js');
+        log4js = require('log4js'),
+        path = require('path'),
+        Q = require('q'),
+        _ = require('lodash');
 
     var logger = log4js.getLogger('MutationTester');
     var MutationTester = function(options) {
@@ -23,28 +25,37 @@
     };
 
     MutationTester.prototype.test = function(testCallback) {
-        var config = this._config,
-            promise = PromiseUtils.promisify(config.getBefore(), true), //run the before section in a promise
+        var deferred = Q.defer(),
             test = testCallback,
             self = this,
             src,
             fileMutationResults = [];
 
-        _.forEach(config.getMutate(), function(fileName) {
-            promise = PromiseUtils.runSequence( [
-                PromiseUtils.promisify(config.getBeforeEach(), true),                           // execute beforeEach
-                function() {return IOUtils.promiseToReadFile(fileName);},                       // read file
-                function(source) {src = source; mutateAndTestFile(fileName, src, test, self);}, // perform mutation testing on the file
-                function(mutationResults) {doReporting(fileName, src, mutationResults, self);}, // do reporting
-                PromiseUtils.promisify(config.getAfterEach(), true),                            // execute afterEach
-                function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}    // collect the results
-            ], promise, function(error) {handleError(error, fileName, self);});
-        });
+        this._config.onInitComplete(deferred.resolve);
+        deferred.promise
+            .then(function() {
+                var config = self._config,
+                    mutationPromise = new Q();
 
-        promise.finally(function() {
+                logger.trace('pre-processing', config.getBefore(), config);
+                config.getBefore()();                            //run possible pre-processing
+                logger.trace('mutating each of', config.getMutate());
+                _.forEach(config.getMutate(), function(fileName) {
+                    mutationPromise = PromiseUtils.runSequence( [
+                        config.getBeforeEach(),                                                         // execute beforeEach
+                        function() {return IOUtils.promiseToReadFile(fileName);},                       // read file
+                        function(source) {return mutateAndTestFile(fileName, source, test, self);},     // perform mutation testing on the file
+                        function(mutationResults) {doReporting(fileName, src, mutationResults, self);}, // do reporting
+                        config.getAfterEach(),                                                          // execute afterEach
+                        function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}    // collect the results
+                    ], mutationPromise, function(error) {handleError(error, fileName, self);});
+                });
+                return mutationPromise;
+            })
+            .finally(function() {
             logger.trace('finally()');
-            PromiseUtils.promisify(config.getAfter(), true)
-                .then(function() {                                //run possible post processing
+            PromiseUtils.promisify(self._config.getAfter())
+                .then(function() {                                //run possible post-processing
                     logger.info('Mutation Test complete');
                     return fileMutationResults;
                 }

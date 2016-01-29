@@ -12,7 +12,7 @@ describe('MutationTester', function() {
             getBefore: function() {return dummyResolver;},
             getAfter: function() {return mockAfter;},
             getAfterEach: function() {return dummyResolver;},
-            getTester: function() {return dummyResolver;},
+            onInitComplete: function(cb) {cb();},
             getReporters: dummyResolver,
             getMutate: function() {return ['file1', 'file2'];}
         },
@@ -57,14 +57,13 @@ describe('MutationTester', function() {
             expect(mutationFileTesterSpy).toHaveBeenCalledWith('some source code', jasmine.any(Function));
             done();
         };
-        new MutationTester().test(dummyResolver);
+        new MutationTester({}).test(function() {});
     });
 
     it('handles a FATAL error by calling process.exit', function(done) {
         var originalExit = process.exit;
         var exitSpy = jasmine.createSpy('process', 'exit');
 
-        exitSpy.and.callFake(dummyResolver);
         Object.defineProperty(process, 'exit', {value: exitSpy});
 
         mockAfter = function() {
@@ -82,6 +81,6 @@ describe('MutationTester', function() {
         };
 
         mutationFileTesterSpy.and.callFake(function() {throw {severity: 'FATAL'};});
-        new MutationTester().test();
+        new MutationTester({}).test();
     });
 });

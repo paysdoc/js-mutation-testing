@@ -6,18 +6,22 @@
 describe('MutationConfiguration', function() {
 
     var proxyquire = require('proxyquire'),
+        Q = require('q'),
         src = '\'use strict\'; var question = \'uh?\';',
-        MutationConfiguration, syncSpy;
+        MutationConfiguration, mockGlob;
 
     beforeEach(function() {
-        syncSpy = jasmine.createSpy('sync');
+        mockGlob = {sync: function(file) {return file;}};
+        spyOn(mockGlob, 'sync').and.callThrough();
         MutationConfiguration = proxyquire('../../src/MutationConfiguration', {
-            'glob': {sync: syncSpy}
+            'glob': mockGlob,
+            './utils/CopyUtils': {copyToTemp: function() {return new Q('temp/dir/path');}}
         });
     });
 
     it('creates getters from the properties in config', function() {
         var config = new MutationConfiguration({
+            code: ['some/path', 'another/path', 'some/spec/path'],
             mutate: ['some/path', 'another/path'],
             specs: 'some/spec/path',
             discardDefaultIgnore: false,
@@ -26,7 +30,7 @@ describe('MutationConfiguration', function() {
             reporters: {text: {dir: 'someDir', file: 'someFile'}}
         });
 
-        expect(syncSpy).toHaveBeenCalledWith('some/path', {dot: true});
+        expect(mockGlob.sync).toHaveBeenCalledWith('some/path', {dot: true});
 
         // check for the existence of the getters
         expect(config.getBasePath()).toBe('.');
@@ -37,12 +41,12 @@ describe('MutationConfiguration', function() {
         expect(config.getMaxReportedMutationLength()).toBe(80);
         expect(config.getMutateProductionCode()).toBeFalsy();
         expect(config.getDiscardDefaultIgnore()).toBeFalsy();
-        expect(config.getMutate()).toEqual([]); //actual expanding of code has been mocked away - hence empty array
+        expect(config.getMutate()).toEqual(['some/path', 'another/path']);
         expect(config.getIgnore()).toEqual([/('use strict'|"use strict");/, /use struct/]);
     });
 
     it('creates defaults with minimal configuration', function() {
-        var config = new MutationConfiguration({mutate: 'some/path', specs: 'some/spec/path'});
+        var config = new MutationConfiguration({code: 'some/path', mutate: 'some/path', specs: 'some/spec/path'});
 
         expect(config.getDiscardDefaultIgnore()).toBeFalsy();
         expect(config.getIgnoreReplacements()).toEqual([]);
@@ -51,8 +55,9 @@ describe('MutationConfiguration', function() {
 
     it('does not add \'use strict\' to the defaults if discardDefaultIgnore is set', function() {
         var config = new MutationConfiguration({
-            mutate: 'some/path',
-            specs: 'some/spec/path',
+            code: ['some/path', 'some/spec/path'],
+            mutate: ['some/path'],
+            specs: ['some/spec/path'],
             discardDefaultIgnore: true,
             ignore: [/use struct/]
         });
@@ -68,7 +73,7 @@ describe('MutationConfiguration', function() {
     });
 
     it('has maintenance functions (before, after, beforeEach, etc...) that are don\'t have getters', function() {
-        var config = new MutationConfiguration({mutate: 'some/path', specs: 'some/spec/path', ignore: [/use struct/]}),
+        var config = new MutationConfiguration({code: ['some/path'], mutate: ['some/path'], specs: ['some/spec/path'], ignore: [/use struct/]}),
             dummySpy = jasmine.createSpy('dummy');
         config.getBefore()(dummySpy);
         config.getBeforeEach()(dummySpy);
@@ -76,5 +81,13 @@ describe('MutationConfiguration', function() {
         config.getAfterEach()(dummySpy);
 
         expect(dummySpy.calls.count()).toBe(4);
+    });
+
+    it('executes a given callback once the file initialization is complete', function(done) {
+        var config = new MutationConfiguration({code: 'some/path', mutate: 'some/path', specs: 'some/spec/path', ignore: [/use struct/], 'mutateProductionCode': true}),
+            deferred = Q.defer();
+
+        config.onInitComplete(deferred.resolve);
+        deferred.promise.then(done); //no need to expect anything: if done is called, we know that the function has done its job
     });
 });

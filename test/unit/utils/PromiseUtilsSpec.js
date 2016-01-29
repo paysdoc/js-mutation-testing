@@ -5,13 +5,14 @@
  */
 describe('PromiseUtils', function() {
     var PromiseUtils = require('../../../src/utils/PromiseUtils'),
-        Q = require('q'), resultOrder,
+        Q = require('q'), resultOrder, promisesWithAsync,
         f1 = promiseWithAsync(function() {resultOrder.push('f1');}, 150),
-        f2 = promiseWithAsync(function() {resultOrder.push('f2');}, Math.random()*100),
+        f2 = function() {resultOrder.push('f2');},
         f3 = function() {resultOrder.push('f3');};
 
     beforeEach(function() {
         resultOrder = [];
+        promisesWithAsync = [];
     });
 
     it('turns a function into a promise', function(done) {
@@ -37,8 +38,9 @@ describe('PromiseUtils', function() {
     });
 
     it('runs all given functions as a sequence of promises', function(done) {
-        PromiseUtils.runSequence([f1, f2, f3], new Q({})).then(function() {
+        PromiseUtils.runSequence([f1, promiseWithAsync(f2, Math.random()*100), f3], new Q({})).then(function() {
             expect(resultOrder).toEqual(['f1', 'f2', 'f3']);
+            expect(promisesWithAsync.length).toBe(2);
             done();
         });
 
@@ -57,7 +59,9 @@ describe('PromiseUtils', function() {
         return function() {
             return PromiseUtils.promisify(function(resolve) {
                 setTimeout(function() {cb(); resolve();}, timeout);
-            }, true);
+            }, true).then(function() {
+                promisesWithAsync.push(cb);
+            });
         };
     }
 });

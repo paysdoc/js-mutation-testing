@@ -6,15 +6,17 @@
 (function(module){
     'use strict';
 
-    var _ = require('lodash'),
-        glob = require('glob'),
+    var JSParserWrapper = require('./JSParserWrapper'),
+        CopyUtils = require('./utils/CopyUtils'),
         log4js = require('log4js'),
+        glob = require('glob'),
         path = require('path'),
-        JSParserWrapper = require('./JSParserWrapper');
+        _ = require('lodash'),
+        Q = require('q');
 
     // Placeholder function for when no explicit before, after, or test function is provided
     function CALL_DONE(done) {
-        done(true);
+        _.isFunction(done) && done(true);
     }
 
     var DEFAULT_OPTIONS = {
@@ -32,14 +34,13 @@
             mutateProductionCode: false,
             discardDefaultIgnore: false
         },
-        DEFAULT_REPORTER = {
-            console: true // By default, report only to the console, which takes no additional configuration
-        },
         REQUIRED_OPTIONS = [
-            'mutate', // The files to perform the mutation tests on
-            'specs'   // The unit tests that (mutated) files are tested against
+            'code',   // all code including libraries required for the test
+            'mutate', // The files to perform the mutation tests on (subset of 'code')
+            'specs'   // The unit tests that (mutated) files are tested against (may be a subset of 'code')
         ];
 
+    var logger = log4js.getLogger('MutationConfiguration');
     var Configuration = function(rawConfig) {
         var ignore = rawConfig && rawConfig.discardDefaultIgnore ? []: [/('use strict'|"use strict");/],
             configIgnore = rawConfig.ignore || [],
@@ -49,23 +50,22 @@
             throw new Error('Not all required options have been set');
         }
 
-        // ensure that ignore and ignoreReplacement are arrays and are added to the rawConfig
-        Array.prototype.push.apply(ignore, ensureArray(configIgnore));
-        config.ignore = ignore;
-        config.ignoreReplacements = ensureArray(rawConfig && rawConfig.ignoreReplacements);
-
-        config.mutate = expandFiles(config.mutate, config.basePath);
-
         // Set logging options
-        log4js.setGlobalLogLevel(log4js.levels[rawConfig.logLevel]);
+        log4js.setGlobalLogLevel(log4js.levels[config.logLevel]);
         log4js.configure({
             appenders: [{type: 'console', layout: {type: 'pattern', pattern: '%[(%d{ABSOLUTE}) %p [%c]:%] %m'}}]
         });
 
-        // Only set the default reporter when no explicit reporter configuration is provided
-        if(!rawConfig.hasOwnProperty('reporters')) {
-            rawConfig.reporters = DEFAULT_REPORTER;
-        }
+        // ensure that ignore and ignoreReplacement are arrays and are added to the rawConfig
+        Array.prototype.push.apply(ignore, toArray(configIgnore));
+        config.ignore = ignore;
+        config.ignoreReplacements = toArray(config && config.ignoreReplacements);
+
+        config.code = expandFiles(toArray(config.code), config.basePath);
+        config.mutate = expandFiles(toArray(config.mutate), config.basePath);
+        config.specs = expandFiles(toArray(config.specs), config.basePath);
+
+        this.initPathPromise = initPath(config);
 
         //with all options set - let's make sure each option has a getter
         _.forOwn(config, function(value, prop) {
@@ -75,11 +75,13 @@
         });
     };
 
-    function ensureArray(val) {
-        return val ? _.isArray(val) ? val : [val] : [];
-    }
+    Configuration.prototype.onInitComplete = function(cb) {
+        this.initPathPromise.done(cb);
+    };
 
-    module.exports = Configuration;
+    function toArray(val) {
+        return _.isArray(val) ? val : [val];
+    }
 
     /**
      * Prepend all given files with the provided basepath and expand all wildcards
@@ -90,14 +92,10 @@
     function expandFiles(files, basePath) {
         var expandedFiles = [];
 
-        if(!_.isArray(files)) {
-            files = [files];
-        }
-
         _.forEach(files, function(fileName) {
             expandedFiles = _.union(
                 expandedFiles,
-                glob.sync(path.join(basePath, fileName), { dot: true })
+                toArray(glob.sync(path.join(basePath, fileName), { dot: true }))
             );
         });
 
@@ -115,4 +113,28 @@
         });
     }
 
+    function initPath(options) {
+        var files;
+
+        logger.trace('mutate', options.mutate);
+        if(options.mutateProductionCode) {
+            return new Q({});
+        } else {
+            files = options.mutate.concat(options.specs);
+            return CopyUtils.copyToTemp(files, 'mutation-testing').then(function(tempDirPath) {
+
+                logger.trace('Copied %j to %s', files, tempDirPath);
+
+                // Set the basePath relative to the temp dir
+                options.basePath = path.join(tempDirPath, options.basePath);
+                // Set the paths to the files to be mutated relative to the temp dir
+                options.mutate = _.map(files, function(file) {
+                    logger.trace('joining %s and %s \n to get: %s', tempDirPath, file, path.join(tempDirPath, file));
+                    return path.join(tempDirPath, file);
+                });
+            });
+        }
+    }
+
+    module.exports = Configuration;
 })(module);

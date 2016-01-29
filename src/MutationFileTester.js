@@ -6,9 +6,10 @@
 (function(module) {
     'use strict';
 
-    var MutationConfiguration = require('./MutationConfiguration'),
+    var MutationScoreCalculator = require('./MutationScoreCalculator'),
         MutationOperatorRegistry = require('./MutationOperatorRegistry'),
         MutationOperatorWarden = require('./MutationOperatorWarden'),
+        MutationConfiguration = require('./MutationConfiguration'),
         ReportGenerator = require('./reporter/ReportGenerator'),
         MutationAnalyser = require('./MutationAnalyser'),
         JSParserWrapper = require('./JSParserWrapper'),
@@ -25,7 +26,7 @@
     var MutationFileTester = function(fileName, config, mutationScoreCalculator) {
         this._fileName = fileName;
         this._config = config.getMutate ? config : new MutationConfiguration(config);
-        this._mutationScoreCalculator = mutationScoreCalculator;
+        this._mutationScoreCalculator = mutationScoreCalculator || new MutationScoreCalculator();
     };
 
     MutationFileTester.prototype.testFile = function(src, test) {
@@ -40,34 +41,36 @@
             mutator = new Mutator(src),
             promise = new Q({});
 
+        function mutateAndWriteFile(mutationOperatorSet) {
+            logger.trace('applying mutation');
+            var mutationDescriptions = mutator.mutate(mutationOperatorSet);
+            logger.trace('writing file', fileName, JSParserWrapper.stringify(ast));
+            return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.stringify(ast))
+                .then(function() {
+                    logger.trace('mutation descriptions', mutationDescriptions);
+                    return mutationDescriptions;
+                });
+        }
+
+        function postProcessing(result) {
+            logger.trace('post processing with result', result);
+            mutationResults.push(ReportGenerator.createMutationLogMessage(config, fileName, mutationDescriptions, src, result));
+            logger.trace('calculating score', fileName, result, mutationAnalyser.getIgnored());
+            mutationScoreCalculator.calculateScore(fileName, result, mutationAnalyser.getIgnored());
+            mutator.unMutate();
+        }
+
         mutator = new Mutator(src);
         _.forEach(mutationAnalyser.collectMutations(moWarden), function (mutationOperatorSet) {
-            function mutateAndWriteFile() {
-                logger.trace('applying mutation');
-                var mutationDescriptions = mutator.mutate(mutationOperatorSet);
-                logger.trace('writing file', fileName, JSParserWrapper.generate(ast));
-                return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.generate(ast))
-                    .then(function() {
-                        logger.trace('mutation descriptions', mutationDescriptions);
-                        return mutationDescriptions;
-                    });
-            }
-
-            function postProcessing(result) {
-                logger.trace('post processing');
-                mutationResults.push(ReportGenerator.createMutationLogMessage(config, fileName, mutationDescriptions, src, result));
-                mutationScoreCalculator.calculateScore(fileName, result, mutationAnalyser.getIgnored());
-                mutator.unMutate();
-            }
-
             promise = PromiseUtils.runSequence([
-                mutateAndWriteFile,                     // apply the mutations
-                function() {return executeTest(test);}, // run the test
-                postProcessing                          // revert the mutation and generate mutation report
-            ], promise);
+                function() {mutateAndWriteFile(mutationOperatorSet);}, // apply the mutations
+                function() {return executeTest(test);},                // run the test
+                postProcessing                                         // revert the mutation and generate mutation report
+            ], promise, handleError);
         });
 
         return promise.then(function() {
+            logger.trace('returning results');
             return mutationResults;
         });
     };
@@ -75,18 +78,26 @@
     function executeTest(test) {
         var testPromise;
 
+        logger.trace('execute test');
         if (typeof test === 'string') {
             testPromise = PromiseUtils.promisify(function(resolver) {
                 resolver(exec(test).status);
             }, true);
         } else {
             testPromise = PromiseUtils.promisify(function(resolver) {
+                logger.trace('executing test \'%s\'with resolver \'%s\'', test, resolver);
                 test(function (status) { resolver(status); });
             }, true);
         }
         return testPromise.then(function(returnCode) {
+            logger.trace('resolving with return code', returnCode);
             return returnCode === 0 ? TestStatus.KILLED : TestStatus.SURVIVED;
         });
+    }
+
+    function handleError(error) {
+        logger.error('file processing stopped', error);
+        throw(error); //throw up to calling party
     }
 
     module.exports = MutationFileTester;

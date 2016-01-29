@@ -7,7 +7,6 @@ var gulp = require('gulp'),
     jasmine = require('gulp-jasmine'),
     istanbul = require('gulp-istanbul'),
     path = require('path'),
-    log4js = require('log4js'),
     MutationTester = require('../src/MutationTester');
 
 gulp.task('test', function() {
@@ -19,7 +18,17 @@ gulp.task('test', function() {
 gulp.task('e2e', function() {
     'use strict';
 
-    new MutationTester({mutate: ['../test/e2e/code/arguments.js'], specs: ['../test/e2e/code/arguments-test.js'], basePath: __dirname}). test(testRunner);
+    var mutate = ['../test/e2e/code/arguments.js'],
+        specs = ['../test/e2e/code/arguments-test.js'],
+        code = mutate.concat(specs);
+
+    new MutationTester({
+        code: code,
+        mutate: mutate,
+        specs: specs,
+        basePath: __dirname,
+        logLevel: 'TRACE'}
+    ). test(testRunner);
 });
 
 function testRunner(config, cb) {

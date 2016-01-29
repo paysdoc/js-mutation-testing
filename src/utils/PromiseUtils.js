@@ -10,26 +10,19 @@
         _ = require('lodash');
 
     /**
-     * turns given callback into a promise
+     * turns given function into a promise
      * @param {function} fn function to be turned into a function
-     * @param {boolean} willResolve when set to true 'fn' will call the resolver itself, otherwise the resolver will be invoked by promisify
+     * @param {boolean} [willResolve] when set to true 'fn' will call the resolver itself, otherwise the resolver will be invoked by promisify
      * @returns {Q} A promise that will resolve when the given function has completed
      */
     module.exports.promisify = function(fn, willResolve) {
-        var dfd,
-            argsArray = Array.prototype.slice.call(arguments, 2),
-            doResolve = function(result) {dfd.resolve(result);};
+        var argsArray = Array.prototype.slice.call(arguments, 2);
 
-        if (Q.isPromise(fn)) {return fn;}
-        dfd = Q.defer();
-        if(willResolve) {
-            argsArray.splice(0, 0, doResolve); // add doResolve callback to start of args array
-            fn.apply({}, argsArray);           // and call the function knowing that the callback is the first argument
-        } else {
-            dfd.resolve(fn.apply({}, argsArray)); // just let the resolver call the function
+        if (Q.isPromise(fn)) {
+            return fn;
         }
 
-        return dfd.promise;
+        return Q.Promise(willResolve ? fn : function(resolve) {fn.apply({}, argsArray); resolve();});
     };
 
     /**
