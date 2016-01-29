@@ -12,3 +12,4 @@ gulp.task('clean', function() {
     del(['build', 'coverage']);
 });
 gulp.task('default', ['clean', 'lint', 'test', 'e2e', 'build']);
+gulp.task('pre-commit', ['clean', 'lint', 'test']);
