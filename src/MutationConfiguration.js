@@ -35,16 +35,16 @@
             discardDefaultIgnore: false
         },
         REQUIRED_OPTIONS = [
-            'code',   // all code including libraries required for the test
+            'lib',    // libraries required for the test
             'mutate', // The files to perform the mutation tests on (subset of 'code')
             'specs'   // The unit tests that (mutated) files are tested against (may be a subset of 'code')
         ];
 
     var logger = log4js.getLogger('MutationConfiguration');
-    var Configuration = function(rawConfig) {
+    function Configuration(rawConfig) {
         var ignore = rawConfig && rawConfig.discardDefaultIgnore ? []: [/('use strict'|"use strict");/],
             configIgnore = rawConfig.ignore || [],
-            config = _.merge(DEFAULT_OPTIONS, rawConfig);
+            config = this._config = _.merge(DEFAULT_OPTIONS, rawConfig);
 
         if(!areRequiredOptionsSet(config)) {
             throw new Error('Not all required options have been set');
@@ -61,22 +61,27 @@
         config.ignore = ignore;
         config.ignoreReplacements = toArray(config && config.ignoreReplacements);
 
-        config.code = expandFiles(toArray(config.code), config.basePath);
+        config.lib = expandFiles(toArray(config.lib), config.basePath);
         config.mutate = expandFiles(toArray(config.mutate), config.basePath);
         config.specs = expandFiles(toArray(config.specs), config.basePath);
 
         this.initPathPromise = initPath(config);
 
         //with all options set - let's make sure each option has a getter
+        logger.trace('setting up getters', config.mutate, config.specs);
         _.forOwn(config, function(value, prop) {
             Configuration.prototype['get' + _.capitalize(prop)] = function() {
-                return value;
+                return config[prop];
             };
         });
-    };
+    }
 
     Configuration.prototype.onInitComplete = function(cb) {
-        this.initPathPromise.done(cb);
+        var self = this;
+        this.initPathPromise.done(function() {
+            logger.trace('init complete with mutation files residing in %s', self.getMutate());
+            cb();
+        });
     };
 
     function toArray(val) {
@@ -113,23 +118,33 @@
         });
     }
 
-    function initPath(options) {
+    function initPath(config) {
         var files;
 
-        logger.trace('mutate', options.mutate);
-        if(options.mutateProductionCode) {
+        logger.trace('mutate', config.mutate);
+        if(config.mutateProductionCode) {
             return new Q({});
         } else {
-            files = options.mutate.concat(options.specs);
+            files = config.lib.concat(config.mutate, config.specs);
             return CopyUtils.copyToTemp(files, 'mutation-testing').then(function(tempDirPath) {
 
                 logger.trace('Copied %j to %s', files, tempDirPath);
 
                 // Set the basePath relative to the temp dir
-                options.basePath = path.join(tempDirPath, options.basePath);
+                config.basePath = path.join(tempDirPath, config.basePath);
+
                 // Set the paths to the files to be mutated relative to the temp dir
-                options.mutate = _.map(files, function(file) {
-                    logger.trace('joining %s and %s \n to get: %s', tempDirPath, file, path.join(tempDirPath, file));
+                config.lib = _.map(config.lib, function(file) {
+                    return path.join(tempDirPath, file);
+                });
+
+                // Set the paths to the files to be mutated relative to the temp dir
+                config.mutate = _.map(config.mutate, function(file) {
+                    return path.join(tempDirPath, file);
+                });
+
+                // Set the paths to the files to be mutated relative to the temp dir
+                config.specs = _.map(config.specs, function(file) {
                     return path.join(tempDirPath, file);
                 });
             });

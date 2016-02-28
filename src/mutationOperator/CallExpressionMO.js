@@ -22,10 +22,10 @@
             replacement = LiteralUtils.determineReplacement(arg.value);
             if (arg.type === 'Literal' && !!replacement) {
                 mos.push(CallExpressionArgsMO.create(astNode, replacement, i));
-                // we have found a literal mutation for given argument, so we don't need to mutate more
-                return mos;
+            } else {
+                mos.push(CallExpressionArgsMO.create(astNode, {type: 'Literal', value: 'MUTATION!', raw:'\'MUTATION!\''}, i));
             }
-            mos.push(CallExpressionArgsMO.create(astNode, {type: 'Literal', value: 'MUTATION!', raw:'\'MUTATION!\''}, i));
+            return mos;
         });
 
         if (args.length === 1) {

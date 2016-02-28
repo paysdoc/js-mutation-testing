@@ -25,7 +25,6 @@
 
         if (!this._original) {
             this._original = {};
-            mutationInfo = MutationUtils.createMutation(astNode, astNode.range[1], this._original, this._replacement);
             _.forOwn(astNode, function(value, key) {
                 self._original[key] = value;
                 delete astNode[key];
@@ -33,6 +32,7 @@
             _.forOwn(this._replacement, function(value, key) {
                 astNode[key] = value;
             });
+            mutationInfo = MutationUtils.createMutation(this._original, this._original.range[1], this._original, this._replacement.value);
         }
 
         return mutationInfo;

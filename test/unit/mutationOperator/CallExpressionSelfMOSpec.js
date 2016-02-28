@@ -21,13 +21,13 @@ describe('CallExpressionSelfMO', function() {
         },
         args = [{
             "range": [13, 14],
-            "type": "Literal",
-            "value": "a",
-            "raw": "'a'"
+            "type": 'Literal',
+            "value": 'a',
+            "raw": '\'a\''
         }],
         node = {
             "range": [0, 16],
-            "type": "CallExpression",
+            "type": 'CallExpression',
             "callee": callee,
             "arguments": args
         },
@@ -61,7 +61,7 @@ describe('CallExpressionSelfMO', function() {
         expect(node.arguments).toBe(args);
 
         expect(MutationUtilsSpy.createMutation.calls.count()).toEqual(1);
-        expect(MutationUtilsSpy.createMutation).toHaveBeenCalledWith(node, 16, node, args[0]);
+        expect(MutationUtilsSpy.createMutation).toHaveBeenCalledWith(node, 16, node, args[0].value);
     });
 
     it('retrieves the replacement value and its coordinates', function() {

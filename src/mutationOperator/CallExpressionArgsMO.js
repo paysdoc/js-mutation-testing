@@ -9,7 +9,7 @@
     var MutationOperator = require('./MutationOperator'),
         MutationUtils = require('../utils/MutationUtils');
 
-    var code = 'METHOD_CALL';
+    var code = 'METHOD_CALL(args)';
     function CallExpressionArgsMO (astNode, replacement, index) {
         MutationOperator.call(this, astNode);
         this.code = code;

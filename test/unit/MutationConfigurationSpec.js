@@ -21,7 +21,7 @@ describe('MutationConfiguration', function() {
 
     it('creates getters from the properties in config', function() {
         var config = new MutationConfiguration({
-            code: ['some/path', 'another/path', 'some/spec/path'],
+            lib: ['some/path', 'another/path', 'some/spec/path'],
             mutate: ['some/path', 'another/path'],
             specs: 'some/spec/path',
             discardDefaultIgnore: false,
@@ -46,7 +46,7 @@ describe('MutationConfiguration', function() {
     });
 
     it('creates defaults with minimal configuration', function() {
-        var config = new MutationConfiguration({code: 'some/path', mutate: 'some/path', specs: 'some/spec/path'});
+        var config = new MutationConfiguration({lib: 'some/lib/path', mutate: 'some/path', specs: 'some/spec/path'});
 
         expect(config.getDiscardDefaultIgnore()).toBeFalsy();
         expect(config.getIgnoreReplacements()).toEqual([]);
@@ -55,7 +55,7 @@ describe('MutationConfiguration', function() {
 
     it('does not add \'use strict\' to the defaults if discardDefaultIgnore is set', function() {
         var config = new MutationConfiguration({
-            code: ['some/path', 'some/spec/path'],
+            lib: ['some/path', 'some/spec/path'],
             mutate: ['some/path'],
             specs: ['some/spec/path'],
             discardDefaultIgnore: true,
@@ -73,7 +73,7 @@ describe('MutationConfiguration', function() {
     });
 
     it('has maintenance functions (before, after, beforeEach, etc...) that are don\'t have getters', function() {
-        var config = new MutationConfiguration({code: ['some/path'], mutate: ['some/path'], specs: ['some/spec/path'], ignore: [/use struct/]}),
+        var config = new MutationConfiguration({lib: ['some/path'], mutate: ['some/path'], specs: ['some/spec/path'], ignore: [/use struct/]}),
             dummySpy = jasmine.createSpy('dummy');
         config.getBefore()(dummySpy);
         config.getBeforeEach()(dummySpy);
@@ -84,7 +84,7 @@ describe('MutationConfiguration', function() {
     });
 
     it('executes a given callback once the file initialization is complete', function(done) {
-        var config = new MutationConfiguration({code: 'some/path', mutate: 'some/path', specs: 'some/spec/path', ignore: [/use struct/], 'mutateProductionCode': true}),
+        var config = new MutationConfiguration({lib: 'some/path', mutate: 'some/path', specs: 'some/spec/path', ignore: [/use struct/], 'mutateProductionCode': true}),
             deferred = Q.defer();
 
         config.onInitComplete(deferred.resolve);

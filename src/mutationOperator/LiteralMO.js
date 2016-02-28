@@ -24,7 +24,7 @@
             this._original = value;
             if (this._replacement) {
                 this._astNode.value = this._replacement;
-                mutationInfo = MutationUtils.createMutation(this._astNode, this._astNode.range[1], value, this._replacement);
+                mutationInfo = MutationUtils.createMutation(this._astNode, this._astNode.range[1], value, this._replacement.value);
             }
         }
 

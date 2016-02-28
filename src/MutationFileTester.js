@@ -25,7 +25,7 @@
     var logger = log4js.getLogger('MutationFileTester');
     var MutationFileTester = function(fileName, config, mutationScoreCalculator) {
         this._fileName = fileName;
-        this._config = config.getMutate ? config : new MutationConfiguration(config);
+        this._config = typeof config.onInitComplete === 'function' ? config : new MutationConfiguration(config);
         this._mutationScoreCalculator = mutationScoreCalculator || new MutationScoreCalculator();
     };
 
@@ -43,18 +43,20 @@
 
         function mutateAndWriteFile(mutationOperatorSet) {
             logger.trace('applying mutation');
-            var mutationDescriptions = mutator.mutate(mutationOperatorSet);
-            logger.trace('writing file', fileName, JSParserWrapper.stringify(ast));
+            mutationDescriptions = mutator.mutate(mutationOperatorSet);
+            logger.trace('writing file', fileName, JSON.stringify(ast));
             return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.stringify(ast))
                 .then(function() {
-                    logger.trace('mutation descriptions', mutationDescriptions);
+                    logger.trace('mutation descriptions', JSON.stringify(mutationDescriptions));
                     return mutationDescriptions;
                 });
         }
 
         function postProcessing(result) {
             logger.trace('post processing with result', result);
-            mutationResults.push(ReportGenerator.createMutationLogMessage(config, fileName, mutationDescriptions, src, result));
+            mutationDescriptions.forEach(function(mutationDescription) {
+                mutationResults.push(ReportGenerator.createMutationLogMessage(config, fileName, mutationDescription, src, result));
+            });
             logger.trace('calculating score', fileName, result, mutationAnalyser.getIgnored());
             mutationScoreCalculator.calculateScore(fileName, result, mutationAnalyser.getIgnored());
             mutator.unMutate();
@@ -63,9 +65,9 @@
         mutator = new Mutator(src);
         _.forEach(mutationAnalyser.collectMutations(moWarden), function (mutationOperatorSet) {
             promise = PromiseUtils.runSequence([
-                function() {mutateAndWriteFile(mutationOperatorSet);}, // apply the mutations
-                function() {return executeTest(test);},                // run the test
-                postProcessing                                         // revert the mutation and generate mutation report
+                function() {mutateAndWriteFile(mutationOperatorSet);},                                                 // apply the mutations
+                function() {return executeTest(config.getLib().concat(config.getMutate()), config.getSpecs(), test);}, // run the test
+                postProcessing                                                                                         // revert the mutation and generate mutation report
             ], promise, handleError);
         });
 
@@ -75,23 +77,32 @@
         });
     };
 
-    function executeTest(test) {
+    function executeTest(code, specs, test) {
         var testPromise;
 
         logger.trace('execute test');
         if (typeof test === 'string') {
             testPromise = PromiseUtils.promisify(function(resolver) {
+                //TODO: test this - it probably doesn't pick up the mutated test files
                 resolver(exec(test).status);
             }, true);
         } else {
             testPromise = PromiseUtils.promisify(function(resolver) {
-                logger.trace('executing test \'%s\'with resolver \'%s\'', test, resolver);
-                test(function (status) { resolver(status); });
+                try {
+                    logger.trace('executing test with code \'%s\' and specs \'%s\'', code, specs);
+                    test(code, specs, function (status) {
+                        resolver(status);
+                    });
+                } catch(err) {
+                    logger.trace('unit test exception caught');
+                    resolver(1); //test killed
+                }
+
             }, true);
         }
         return testPromise.then(function(returnCode) {
             logger.trace('resolving with return code', returnCode);
-            return returnCode === 0 ? TestStatus.KILLED : TestStatus.SURVIVED;
+            return returnCode > 0 ? TestStatus.KILLED : TestStatus.SURVIVED;
         });
     }
 

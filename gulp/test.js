@@ -18,22 +18,37 @@ gulp.task('test', function() {
 gulp.task('e2e', function() {
     'use strict';
 
-    var mutate = ['../test/e2e/code/arguments.js'],
-        specs = ['../test/e2e/code/arguments-test.js'],
-        code = mutate.concat(specs);
+    var mutate = ['../test/e2e/code/**/*.js'],
+        specs = ['../test/e2e/tests/**/*-test.js'],
+        lib = ['../node_modules/chai/**/*.js', '../node_modules/lodash/**/*.js'];
 
+    function completionHandler(passed, cb) {
+        cb(passed ? 0 : 1);
+    }
     new MutationTester({
-        code: code,
+        lib: lib,
         mutate: mutate,
         specs: specs,
         basePath: __dirname,
         logLevel: 'TRACE'}
-    ). test(testRunner);
+    ).test(function(src, specs, cb) {
+            testRunner({src: src, specs: specs}, cb, function(passed) {
+                completionHandler(passed, cb);
+            });
+            process.on('uncaughtException', function(error) {
+                console.log('caught ', error);
+                cb(1, error.message);
+            });
+        }
+    );
 });
 
-function testRunner(config, cb) {
+function testRunner(config, cb, completionHandler) {
     'use strict';
 
+    if (completionHandler) {
+        jasmine.onComplete(completionHandler);
+    }
     gulp.src(config.src)
         .pipe(istanbul({includeUntested:true}))
         .pipe(istanbul.hookRequire())

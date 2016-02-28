@@ -15,6 +15,7 @@
         "jasmine": false,
         "describe": false,
         "document": false,
+        "fail": false,
         "it": false,
         "before": false,
         "beforeEach": false,

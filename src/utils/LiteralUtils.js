@@ -9,11 +9,11 @@ module.exports.determineReplacement = function (literalValue) {
     var replacement;
 
     if (_.isString(literalValue)) {
-        replacement = '"MUTATION!"';
+        replacement = 'MUTATION!';
     } else if (_.isNumber(literalValue)) {
-        replacement = (literalValue + 1) + "";
+        replacement = (literalValue + 1) + '';
     } else if (_.isBoolean(literalValue)) {
         replacement = (!literalValue) + '';
     }
-    return replacement;
+    return replacement ? {type: 'Literal', value: replacement, raw:'\'' + replacement + '\''} : null;
 };

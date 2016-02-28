@@ -6,6 +6,7 @@ describe('MutationFileTester', function() {
     var proxyquire = require('proxyquire'),
         PromiseUtils = require('../../src/utils/PromiseUtils'),
         mockIOUtils = {promiseToWriteFile: function() {return PromiseUtils.promisify(promiseToWriteFileSpy);}},
+        mockArrayGetter = function() {return [];},
         MutationFileTester,
         createMutationLogMessageSpy, promiseToWriteFileSpy, calculateScoreSpy, loggerSpy;
 
@@ -15,7 +16,7 @@ describe('MutationFileTester', function() {
         promiseToWriteFileSpy = jasmine.createSpy('promiseToWriteFile');
         calculateScoreSpy = jasmine.createSpy('calculateScore');
         MutationFileTester = proxyquire('../../src/MutationFileTester', {
-            './MutationConfiguration' : function() {},
+            './MutationConfiguration' : function() {return {getLib: mockArrayGetter, getMutate: mockArrayGetter, getSpecs: mockArrayGetter};},
             './MutationOperatorRegistry': {getMutationOperatorTypes: function() {}},
             './MutationOperatorWarden': function() {},
             './reporter/ReportGenerator': {createMutationLogMessage: createMutationLogMessageSpy},
@@ -23,7 +24,7 @@ describe('MutationFileTester', function() {
             './JSParserWrapper': {stringify: function(){}},
             './utils/IOUtils': mockIOUtils,
             './Mutator': function() {return {mutate: function(param) {return param;}, unMutate: function() {}};},
-            'sync-exec': function() {return {status: 1};},
+            'sync-exec': function() {return {status: 0};},
             'log4js': {getLogger: function() {return loggerSpy;}}
 
         });
@@ -37,17 +38,23 @@ describe('MutationFileTester', function() {
                 expect(promiseToWriteFileSpy.calls.count()).toBe(2);
                 expect(calculateScoreSpy).toHaveBeenCalledWith('some.file.name', 'KILLED', undefined);
                 done();
+            }, function(error) {
+                console.error(error);
+                done();
             });
     });
 
     it('tests a file using an exec string', function(done) {
-        var config = {getMutate: 'getMutate'};
-        new MutationFileTester('some.file.name', config, {calculateScore: calculateScoreSpy}).testFile('someSrc', 'gulp test')
+        //var config = {getMutate: 'getMutate'};
+        new MutationFileTester('some.file.name', {}, {calculateScore: calculateScoreSpy}).testFile('someSrc', 'gulp test')
             .then(function() {
                 expect(createMutationLogMessageSpy.calls.count()).toBe(2);
                 expect(calculateScoreSpy.calls.count()).toBe(2);
                 expect(promiseToWriteFileSpy.calls.count()).toBe(2);
-                expect(createMutationLogMessageSpy).toHaveBeenCalledWith(config, 'some.file.name', undefined, 'someSrc', 'SURVIVED' );
+                expect(createMutationLogMessageSpy).toHaveBeenCalledWith(jasmine.any(Object), 'some.file.name', 'ms1', 'someSrc', 'SURVIVED' );
+                done();
+            }, function(error) {
+                console.error(error);
                 done();
             });
     });

@@ -23,9 +23,9 @@
     MutationOperatorHandler.prototype.applyMutation = function(mutationOperatorSet) {
         var result = [];
         _.forEach(mutationOperatorSet, function(operator) {
-            logger.trace('applying mutation', operator.code);
+            logger.trace('applying mutation', JSON.stringify(operator.code));
             result.push(operator.apply());
-            logger.trace('applied mutation', result);
+            logger.trace('applied mutation', JSON.stringify(result));
         });
         this._moStack.push(mutationOperatorSet);
         return result;

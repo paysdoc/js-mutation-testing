@@ -29,9 +29,9 @@
             mutationDescriptions;
 
         this.unMutate();
-        logger.trace('handler:', this._handler, mutationOperatorSet);
+        logger.trace('handler:', this._handler, JSON.stringify(mutationOperatorSet));
         mutationDescriptions = this._handler.applyMutation(mutationOperatorSet);
-        logger.trace('applied mutation', mutationDescriptions);
+        logger.trace('applied mutation', JSON.stringify(mutationDescriptions));
         return _.reduce(mutationDescriptions, function(result, mutationDescription) {
             result.push(_.merge(mutationDescription, calibrateBeginAndEnd(mutationDescription.begin, mutationDescription.end, self._brackets)));
             return result;

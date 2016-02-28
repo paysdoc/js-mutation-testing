@@ -18,8 +18,8 @@ var fs = require('fs'),
      * @returns {String} the relative path
      */
     module.exports.getRelativeFilePath = function getRelativeFilePath(basePath, srcFilePath) {
-        var normalizedBasePath = IOUtils.normalizeWindowsPath(basePath),
-            normalizedSrcFile = IOUtils.normalizeWindowsPath(srcFilePath);
+        var normalizedBasePath = normalizeWindowsPath(basePath),
+            normalizedSrcFile = normalizeWindowsPath(srcFilePath);
         return _.last(normalizedSrcFile.split(normalizedBasePath));
     };
 
@@ -52,13 +52,7 @@ var fs = require('fs'),
      * @param {string} path the path to normalize
      * @returns {string} normalized path
      */
-    module.exports.normalizeWindowsPath = function(path) {
-        // Normalize Windows paths to use '/' instead of '\\'
-        if(os.platform() === 'win32') {
-            path = path.replace(/\\/g, '/');
-        }
-        return path;
-    };
+    module.exports.normalizeWindowsPath = normalizeWindowsPath;
 
     /**
      * creates a new directory if it doesn't exist
@@ -214,5 +208,13 @@ var fs = require('fs'),
             });
         });
     };
+
+    function normalizeWindowsPath(path) {
+        // Normalize Windows paths to use '/' instead of '\\'
+        if(os.platform() === 'win32') {
+            path = path.replace(/\\/g, '/');
+        }
+        return path;
+    }
 })(module);
 

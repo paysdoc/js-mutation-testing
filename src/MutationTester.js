@@ -37,7 +37,6 @@
                 var config = self._config,
                     mutationPromise = new Q();
 
-                logger.trace('pre-processing', config.getBefore(), config);
                 config.getBefore()();                            //run possible pre-processing
                 logger.trace('mutating each of', config.getMutate());
                 _.forEach(config.getMutate(), function(fileName) {
