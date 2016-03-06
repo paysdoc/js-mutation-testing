@@ -18,7 +18,7 @@ describe('ExclusionUtils', function() {
     beforeEach(function() {
         loggerSpy = jasmine.createSpyObj('logger', ['warn']);
         ExclusionUtils = proxyquire('../../../src/utils/ExclusionUtils', {
-            'log4js': {getLogger: function() {return loggerSpy}}
+            'log4js': {getLogger: function() {return loggerSpy;}}
         });
     });
 
@@ -62,10 +62,10 @@ describe('ExclusionUtils', function() {
         var src = function foo() {
                 // @excludeMutations #params
                 return {
-                    baz: function () {
+                    baz: function (bar) {
                         return bar;
                     }
-                }
+                };
             },
             node = JSParserWrapper.parse(src.toString().replace(/#params/, '[\'LITERAL\']'));
 

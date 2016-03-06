@@ -9,10 +9,10 @@ describe('MutationOperatorHandler', function() {
         moHandler, apply1, apply2, revert1, revert2;
 
     beforeEach( function() {
-        apply1 = spyOn({apply: function(){return 'apply1'}}, 'apply').and.callThrough();
-        apply2 = spyOn({apply: function(){return 'apply2'}}, 'apply').and.callThrough();
-        revert1 = spyOn({apply: function(){return 'revert1'}}, 'apply').and.callThrough();
-        revert2 = spyOn({apply: function(){return 'revert2'}}, 'apply').and.callThrough();
+        apply1 = spyOn({apply: function(){return 'apply1';}}, 'apply').and.callThrough();
+        apply2 = spyOn({apply: function(){return 'apply2';}}, 'apply').and.callThrough();
+        revert1 = spyOn({apply: function(){return 'revert1';}}, 'apply').and.callThrough();
+        revert2 = spyOn({apply: function(){return 'revert2';}}, 'apply').and.callThrough();
         moHandler = new MutationOperatorHandler();
     });
 

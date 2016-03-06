@@ -131,6 +131,7 @@
                 logger.trace('Copied %j to %s', files, tempDirPath);
 
                 // Set the basePath relative to the temp dir
+                logger.trace('base path', config.basePath);
                 config.basePath = path.join(tempDirPath, config.basePath);
 
                 // Set the paths to the files to be mutated relative to the temp dir

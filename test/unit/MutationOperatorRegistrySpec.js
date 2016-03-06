@@ -10,7 +10,7 @@ describe('MutationOperatorRegistry', function() {
         ComparisonOperatorMO = require('../../src/mutationOperator/ComparisonOperatorMO'),
         EqualityOperatorMO = require('../../src/mutationOperator/EqualityOperatorMO'),
         ArithmeticOperatorMO = require('../../src/mutationOperator/ArithmeticOperatorMO'),
-        mockStatus, mockMOWarden = {getMOStatus: function() {return mockStatus}},
+        mockStatus, mockMOWarden = {getMOStatus: function() {return mockStatus;}},
         MockEqualityOperatorMO, MockMutationConfiguration, getMOStatusSpy;
 
     function mockCreate(create, key) {

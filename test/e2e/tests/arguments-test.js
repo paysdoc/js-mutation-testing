@@ -1,4 +1,3 @@
-var assert = require("chai").assert;
 var args = require("./../code/arguments");
 
 describe('Arguments', function () {
@@ -7,6 +6,6 @@ describe('Arguments', function () {
             {name: 'Nora'},
             {name: 'Marco'}
         ], 'Steve');
-        assert.equal(result, false);
+        expect(result).toBeFalsy();
     });
 });

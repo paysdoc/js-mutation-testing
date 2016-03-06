@@ -5,11 +5,11 @@
 describe('MutationFileTester', function() {
     var proxyquire = require('proxyquire'),
         PromiseUtils = require('../../src/utils/PromiseUtils'),
-        mockIOUtils = {promiseToWriteFile: function() {return PromiseUtils.promisify(promiseToWriteFileSpy);}},
         mockArrayGetter = function() {return [];},
-        MutationFileTester,
+        MutationFileTester, mockIOUtils,
         createMutationLogMessageSpy, promiseToWriteFileSpy, calculateScoreSpy, loggerSpy;
 
+    mockIOUtils = {promiseToWriteFile: function() {return PromiseUtils.promisify(promiseToWriteFileSpy);}};
     beforeEach(function() {
         loggerSpy = jasmine.createSpyObj('logger', ['trace', 'info', 'error']);
         createMutationLogMessageSpy = jasmine.createSpy('createMutationLogMessage');

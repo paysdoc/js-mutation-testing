@@ -10,7 +10,7 @@ describe('MutationOperatorWarden', function() {
         src = '\'use strict\'; var question = \'uh?\';',
         mockMutationTypes = [{code: 'GREEN', exclude: true}, {code: 'BLUE', exclude: false}],
         mockReplacement = '"MUTATION!"',
-        mockMO = {getReplacement: function() {return mockReplacement}},
+        mockMO = {getReplacement: function() {return mockReplacement;}},
         getReplacementSpy, getExcludeMutationsSpy, getIgnoreSpy, getIgnoreReplacementsSpy,
         mockExcludeMutations, mockIgnore, mockIgnoreReplacement, node, moWarden;
 
@@ -20,7 +20,7 @@ describe('MutationOperatorWarden', function() {
             getIgnore: function() {return mockIgnore;},
             getIgnoreReplacements: function() {return mockIgnoreReplacement;},
             getDiscardDefaultIgnore: function() {return mockIgnoreReplacement;}
-        }
+        };
     }
 
     beforeEach(function() {

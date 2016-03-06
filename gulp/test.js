@@ -4,7 +4,7 @@
  * Licensed under the MIT license.
  */
 var gulp = require('gulp'),
-    jasmine = require('gulp-jasmine'),
+    gulp_jasmine = require('gulp-jasmine'),
     istanbul = require('gulp-istanbul'),
     path = require('path'),
     MutationTester = require('../src/MutationTester');
@@ -12,51 +12,44 @@ var gulp = require('gulp'),
 gulp.task('test', function() {
     'use strict';
 
-    testRunner({src: ['src/**/*.js'], specs: ['test/unit/**/*Spec.js']});
+    gulp.src(['src/**/*.js'])
+        .pipe(istanbul({includeUntested:true}))
+        .pipe(istanbul.hookRequire())
+        .on('finish', function() {
+            gulp.src(['test/unit/**/*Spec.js'])
+                .pipe(gulp_jasmine())
+                .pipe(istanbul.writeReports())
+                .on('error', function(err) {throw err;});
+        });
 });
 
 gulp.task('e2e', function() {
     'use strict';
 
-    var mutate = ['../test/e2e/code/**/*.js'],
-        specs = ['../test/e2e/tests/**/*-test.js'],
-        lib = ['../node_modules/chai/**/*.js', '../node_modules/lodash/**/*.js'];
+    var mutate = ['code/**/*.js'],
+        specs = ['tests/**/*-test.js'],
+        lib = ['../../node_modules/lodash/**/*.js'];
 
     function completionHandler(passed, cb) {
-        cb(passed ? 0 : 1);
+        cb(passed);
     }
     new MutationTester({
         lib: lib,
         mutate: mutate,
         specs: specs,
-        basePath: __dirname,
+        basePath: process.cwd() + '/test/e2e/',
         logLevel: 'TRACE'}
-    ).test(function(src, specs, cb) {
-            testRunner({src: src, specs: specs}, cb, function(passed) {
+    ).test(function(config, cb) {
+            var jasmine = new (require('jasmine'))({projectBaseDir: config.basePath});
+            jasmine.loadConfig({
+                spec_dir: '',
+                spec_files: specs,
+                helpers: lib
+            });
+            jasmine.onComplete(function(passed) {
                 completionHandler(passed, cb);
             });
-            process.on('uncaughtException', function(error) {
-                console.log('caught ', error);
-                cb(1, error.message);
-            });
+            jasmine.execute();
         }
     );
 });
-
-function testRunner(config, cb, completionHandler) {
-    'use strict';
-
-    if (completionHandler) {
-        jasmine.onComplete(completionHandler);
-    }
-    gulp.src(config.src)
-        .pipe(istanbul({includeUntested:true}))
-        .pipe(istanbul.hookRequire())
-        .on('finish', function() {
-            gulp.src(config.specs)
-                .pipe(jasmine())
-                .pipe(istanbul.writeReports())
-                .on('finish', function() {cb && cb();})
-                .on('error', function(err) {throw err;});
-        });
-}

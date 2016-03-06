@@ -11,7 +11,7 @@ describe('Mutator', function() {
         return [
             {range: [10,46], begin: 10, end: 34, line: 3, col: 7, original: 'foo', replacement: 'bar'},
             {range: [10,46], begin: 12, end: 19, line: 3, col: 12, original: 'foo', replacement: ''}
-        ]
+        ];
     }};
 
     function mockTokenize() {
@@ -26,7 +26,7 @@ describe('Mutator', function() {
                 "value": "(",
                 "range": [18,19]
             }
-        ]
+        ];
     }
 
     beforeEach(function() {

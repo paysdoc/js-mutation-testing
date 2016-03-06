@@ -65,8 +65,8 @@
         mutator = new Mutator(src);
         _.forEach(mutationAnalyser.collectMutations(moWarden), function (mutationOperatorSet) {
             promise = PromiseUtils.runSequence([
-                function() {mutateAndWriteFile(mutationOperatorSet);},                                                 // apply the mutations
-                function() {return executeTest(config.getLib().concat(config.getMutate()), config.getSpecs(), test);}, // run the test
+                function() {return mutateAndWriteFile(mutationOperatorSet);},                                          // apply the mutations
+                function() {return executeTest(config, test);}, // run the test
                 postProcessing                                                                                         // revert the mutation and generate mutation report
             ], promise, handleError);
         });
@@ -77,10 +77,9 @@
         });
     };
 
-    function executeTest(code, specs, test) {
+    function executeTest(config, test) {
         var testPromise;
 
-        logger.trace('execute test');
         if (typeof test === 'string') {
             testPromise = PromiseUtils.promisify(function(resolver) {
                 //TODO: test this - it probably doesn't pick up the mutated test files
@@ -89,12 +88,18 @@
         } else {
             testPromise = PromiseUtils.promisify(function(resolver) {
                 try {
-                    logger.trace('executing test with code \'%s\' and specs \'%s\'', code, specs);
-                    test(code, specs, function (status) {
-                        resolver(status);
+                    logger.trace('executing test with path \'%s\', code \'%s\' and specs \'%s\'', config.getBasePath(), config.getMutate(), config.getSpecs());
+                    test({
+                        basePath: config.getBasePath(),
+                        lib: config.getLib(),
+                        src: config.getMutate(),
+                        specs: config.getSpecs(),
+                    }, function (status) {
+                        logger.debug(status);
+                        resolver(status ? 0 : 1);
                     });
                 } catch(err) {
-                    logger.trace('unit test exception caught');
+                    logger.warn/('unit test exception caught', err);
                     resolver(1); //test killed
                 }
 
