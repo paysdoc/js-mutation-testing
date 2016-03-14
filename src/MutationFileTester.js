@@ -44,7 +44,7 @@
         function mutateAndWriteFile(mutationOperatorSet) {
             logger.trace('applying mutation');
             mutationDescriptions = mutator.mutate(mutationOperatorSet);
-            logger.trace('writing file', fileName, JSON.stringify(ast));
+            logger.trace('writing file', fileName, '\n', JSParserWrapper.stringify(ast));
             return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.stringify(ast))
                 .then(function() {
                     logger.trace('mutation descriptions', JSON.stringify(mutationDescriptions));
@@ -93,13 +93,13 @@
                         basePath: config.getBasePath(),
                         lib: config.getLib(),
                         src: config.getMutate(),
-                        specs: config.getSpecs(),
+                        specs: config.getSpecs()
                     }, function (status) {
                         logger.debug(status);
                         resolver(status ? 0 : 1);
                     });
                 } catch(err) {
-                    logger.warn/('unit test exception caught', err);
+                    logger.warn('unit test exception caught', err);
                     resolver(1); //test killed
                 }
 

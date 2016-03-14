@@ -7,8 +7,10 @@
 
     var MutationUtils = require('../utils/MutationUtils'),
         LiteralUtils = require('../utils/LiteralUtils'),
-        MutationOperator = require('./MutationOperator');
+        MutationOperator = require('./MutationOperator'),
+        log4js = require('log4js');
 
+    var logger = log4js.getLogger('LiteralMO');
     var code = 'LITERAL';
     function LiteralMO (astNode) {
         MutationOperator.call(this, astNode);
@@ -23,7 +25,8 @@
         if (!this._original) {
             this._original = value;
             if (this._replacement) {
-                this._astNode.value = this._replacement;
+                logger.trace('replacement', this._replacement);
+                this._astNode.value = this._replacement.value;
                 mutationInfo = MutationUtils.createMutation(this._astNode, this._astNode.range[1], value, this._replacement.value);
             }
         }
