@@ -40,7 +40,16 @@ gulp.task('e2e', function() {
         basePath: process.cwd() + '/test/e2e/',
         logLevel: 'TRACE'}
     ).test(function(config, cb) {
-            var jasmine = new (require('jasmine'))({projectBaseDir: config.basePath});
+            var cache = require.cache || {};
+            var jasmine;
+
+            for(var key in cache) {
+                if(cache.hasOwnProperty(key)) {
+                    delete cache[key];
+                }
+            }
+
+            jasmine = new (require('jasmine'))({projectBaseDir: config.basePath});
             jasmine.loadConfig({
                 spec_dir: '',
                 spec_files: specs,

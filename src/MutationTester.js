@@ -38,7 +38,6 @@
                     mutationPromise = new Q();
 
                 config.getBefore()();                            //run possible pre-processing
-                logger.trace('mutating each of', config.getMutate());
                 _.forEach(config.getMutate(), function(fileName) {
                     mutationPromise = PromiseUtils.runSequence( [
                         config.getBeforeEach(),                                                         // execute beforeEach
@@ -52,7 +51,6 @@
                 return mutationPromise;
             })
             .finally(function() {
-            logger.trace('finally()');
             PromiseUtils.promisify(self._config.getAfter())
                 .then(function() {                                //run possible post-processing
                     logger.info('Mutation Test complete');
@@ -63,13 +61,11 @@
     };
 
     function mutateAndTestFile(fileName, src, test, ctx) {
-        logger.trace('mutating and testing');
         var mutationFileTester = new MutationFileTester(fileName, ctx._config, ctx._mutationScoreCalculator);
         return mutationFileTester.testFile(src, test);
     }
 
     function doReporting(fileName, src, mutationResults, ctx) {
-        logger.trace('doing reporting');
         var config = ctx._config;
         var fileMutationResult = {
             stats: ctx._mutationScoreCalculator.getScorePerFile(fileName),

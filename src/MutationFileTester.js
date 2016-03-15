@@ -42,22 +42,18 @@
             promise = new Q({});
 
         function mutateAndWriteFile(mutationOperatorSet) {
-            logger.trace('applying mutation');
             mutationDescriptions = mutator.mutate(mutationOperatorSet);
-            logger.trace('writing file', fileName, '\n', JSParserWrapper.stringify(ast));
+            logger.info('writing file', fileName, '\n', JSParserWrapper.stringify(ast));
             return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.stringify(ast))
                 .then(function() {
-                    logger.trace('mutation descriptions', JSON.stringify(mutationDescriptions));
                     return mutationDescriptions;
                 });
         }
 
         function postProcessing(result) {
-            logger.trace('post processing with result', result);
             mutationDescriptions.forEach(function(mutationDescription) {
                 mutationResults.push(ReportGenerator.createMutationLogMessage(config, fileName, mutationDescription, src, result));
             });
-            logger.trace('calculating score', fileName, result, mutationAnalyser.getIgnored());
             mutationScoreCalculator.calculateScore(fileName, result, mutationAnalyser.getIgnored());
             mutator.unMutate();
         }
@@ -82,7 +78,7 @@
 
         if (typeof test === 'string') {
             testPromise = PromiseUtils.promisify(function(resolver) {
-                //TODO: test this - it probably doesn't pick up the mutated test files
+                //FIXME: this probably doesn't pick up the mutated test files
                 resolver(exec(test).status);
             }, true);
         } else {
@@ -94,19 +90,16 @@
                         lib: config.getLib(),
                         src: config.getMutate(),
                         specs: config.getSpecs()
-                    }, function (status) {
-                        logger.debug(status);
+                    }, function (status) { // TODO: what statuses do other unit test frameworks return? - this should be motre generic
                         resolver(status ? 0 : 1);
                     });
                 } catch(err) {
-                    logger.warn('unit test exception caught', err);
                     resolver(1); //test killed
                 }
 
             }, true);
         }
         return testPromise.then(function(returnCode) {
-            logger.trace('resolving with return code', returnCode);
             return returnCode > 0 ? TestStatus.KILLED : TestStatus.SURVIVED;
         });
     }

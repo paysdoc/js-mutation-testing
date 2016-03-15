@@ -34,14 +34,13 @@
     module.exports.createMutationLogMessage = function(config, srcFilePath, mutation, src, testStatus) {
         var srcFileName = IOUtils.getRelativeFilePath(config.getBasePath(), srcFilePath),
             currentMutationPosition = srcFileName + ':' + mutation.line + ':' + (mutation.col + 1);
-            logger.trace('mutation.original', mutation);
         var message = currentMutationPosition + (
                     mutation.replacement ?
                     ' Replaced ' + truncateReplacement(config, mutation.original) + ' with ' + truncateReplacement(config, mutation.replacement) + ' -> ' + testStatus :
                     ' Removed ' + truncateReplacement(config, mutation.original) + ' -> ' + testStatus
                 );
 
-        logger.trace('creating log message', mutation, testStatus === TestStatus.SURVIVED, message);
+        logger.trace('creating log message', message);
         return {
             mutation: mutation,
             survived: testStatus === TestStatus.SURVIVED,

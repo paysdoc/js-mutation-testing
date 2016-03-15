@@ -25,7 +25,6 @@
         _.forEach(mutationOperatorSet, function(operator) {
             logger.trace('applying mutation', JSON.stringify(operator.code));
             result.push(operator.apply());
-            logger.trace('applied mutation', JSON.stringify(result));
         });
         this._moStack.push(mutationOperatorSet);
         return result;
