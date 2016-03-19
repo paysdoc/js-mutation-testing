@@ -17,7 +17,7 @@ var HtmlFormatter = require('./HtmlFormatter'),
     'use strict';
 
     var FileHtmlBuilder = function(config) {
-        this._successThreshold = config.get('successThreshold') || 80;
+        this._config = config;
     };
 
     /**
@@ -26,14 +26,14 @@ var HtmlFormatter = require('./HtmlFormatter'),
      * @param {string} baseDir the base directory in which to write the reports
      */
     FileHtmlBuilder.prototype.createFileReports = function(fileResults, baseDir) {
+        var self = this;
 
         return Q.Promise(function(resolve) {
-            var self = this,
-                results = fileResults.mutationResults,
+            var results = fileResults.mutationResults,
                 formatter = new HtmlFormatter(fileResults.src);
 
             formatter.formatSourceToHtml(results, function(formattedSource) {
-                writeReport(fileResults, formatter, formattedSource.split('\n'), baseDir, self._successThreshold);
+                writeReport(fileResults, formatter, formattedSource.split('\n'), baseDir, self._config);
                 resolve();
             });
         });
@@ -42,12 +42,12 @@ var HtmlFormatter = require('./HtmlFormatter'),
     /**
      * write the report to file
      */
-    function writeReport(fileResult, formatter, formattedSourceLines, baseDir, _successThreshold) {
+    function writeReport(fileResult, formatter, formattedSourceLines, baseDir, config) {
         var fileName = fileResult.fileName,
             stats = StatUtils.decorateStatPercentages(fileResult.stats),
             parentDir = path.normalize(baseDir + '/..'),
             mutations = formatter.formatMutations(fileResult.mutationResults),
-            breadcrumb = new IndexHtmlBuilder(baseDir).linkPathItems({
+            breadcrumb = new IndexHtmlBuilder(baseDir, config).linkPathItems({
                 currentDir: parentDir,
                 fileName: baseDir + '/' + fileName + '.html',
                 separator: ' >> ',
@@ -67,7 +67,7 @@ var HtmlFormatter = require('./HtmlFormatter'),
                 script: Templates.baseScriptTemplate({ additionalScript: Templates.fileScriptCode }),
                 fileName: path.basename(fileName),
                 stats: stats,
-                status: stats.successRate > _successThreshold ? 'killed' : stats.all > 0 ? 'survived' : 'neutral',
+                status: stats.successRate > config.get('successThreshold') ? 'killed' : stats.all > 0 ? 'survived' : 'neutral',
                 breadcrumb: breadcrumb,
                 generatedAt: new Date().toLocaleString(),
                 content: file

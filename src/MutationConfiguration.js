@@ -30,6 +30,7 @@
             reporters: {console: true},
             ignoreReplacements: [],
             excludeMutations: [],
+            successThreshold: 80,
             maxReportedMutationLength: 80,
             mutateProductionCode: false,
             discardDefaultIgnore: false

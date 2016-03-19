@@ -9,7 +9,7 @@ var gulp = require('gulp'),
 
 require('require-dir')('./gulp');
 gulp.task('clean', function() {
-    del(['build', 'coverage']);
+    del(['build', 'coverage', 'reports']);
 });
 gulp.task('default', ['clean', 'lint', 'test', 'e2e', 'build']);
 gulp.task('pre-commit', ['clean', 'lint', 'test']);
