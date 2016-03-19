@@ -5,32 +5,29 @@
  */
 describe('MutationOperatorWarden', function() {
     var MutationOperatorWarden = require('../../src/MutationOperatorWarden'),
+        mockConfig = {},
         mockConfiguration = getMockConfig(),
         JSParserWrapper = require('../../src/JSParserWrapper'),
         src = '\'use strict\'; var question = \'uh?\';',
         mockMutationTypes = [{code: 'GREEN', exclude: true}, {code: 'BLUE', exclude: false}],
         mockReplacement = '"MUTATION!"',
         mockMO = {getReplacement: function() {return mockReplacement;}},
-        getReplacementSpy, getExcludeMutationsSpy, getIgnoreSpy, getIgnoreReplacementsSpy,
-        mockExcludeMutations, mockIgnore, mockIgnoreReplacement, node, moWarden;
+        getReplacementSpy, node, moWarden;
 
     function getMockConfig() {
         return {
-            getExcludeMutations: function() {return mockExcludeMutations;},
-            getIgnore: function() {return mockIgnore;},
-            getIgnoreReplacements: function() {return mockIgnoreReplacement;},
-            getDiscardDefaultIgnore: function() {return mockIgnoreReplacement;}
+            get: function(key) {
+                return mockConfig[key];
+            }
         };
     }
 
     beforeEach(function() {
-        mockExcludeMutations = [];
-        mockIgnore = [/('use strict'|"use strict");/];
-        mockIgnoreReplacement = [];
+        mockConfig.excludeMutations = [];
+        mockConfig.ignore = [/('use strict'|"use strict");/];
+        mockConfig.ignoreReplacements = [];
+        mockConfig.discardDefaultIgnore = [];
         getReplacementSpy = spyOn(mockMO, 'getReplacement').and.callThrough();
-        getExcludeMutationsSpy = spyOn(mockConfiguration, 'getExcludeMutations').and.callThrough();
-        getIgnoreSpy = spyOn(mockConfiguration, 'getIgnore').and.callThrough();
-        getIgnoreReplacementsSpy = spyOn(mockConfiguration, 'getIgnoreReplacements').and.callThrough();
         node = JSParserWrapper.parse(src);
     });
 
@@ -41,20 +38,20 @@ describe('MutationOperatorWarden', function() {
     });
 
     it('ignores the \'USE STRICT\' statement, ignoring case', function() {
-        mockIgnore = [/('USE STRICT'|"USE STRICT");/i];
+        mockConfig.ignore = [/('USE STRICT'|"USE STRICT");/i];
         moWarden = new MutationOperatorWarden(src, mockConfiguration, mockMutationTypes);
         expect(moWarden.getMOStatus(node, mockMO)).toBe('include');
         expect(moWarden.getMOStatus(node.body[0], mockMO)).toBe('ignore');
     });
 
     it('ignores non-regex strings', function() {
-        mockIgnore = ['\'uh?\''];
+        mockConfig.ignore = ['\'uh?\''];
         moWarden = new MutationOperatorWarden(src, mockConfiguration, mockMutationTypes);
         expect(moWarden.getMOStatus(node.body[1].declarations[0].init, mockMO)).toBe('ignore');
     });
 
     it('ignores a given string replacement', function() {
-        mockIgnoreReplacement = ['MUTATION!'];
+        mockConfig.ignoreReplacements = ['MUTATION!'];
         moWarden = new MutationOperatorWarden(src, mockConfiguration, mockMutationTypes);
 
         expect(moWarden.getMOStatus(node, mockMO)).toBe('ignore');
@@ -63,7 +60,7 @@ describe('MutationOperatorWarden', function() {
     });
 
     it('ignores a mutation based on given case sensitive regex replacement', function() {
-        mockIgnoreReplacement = [/MUTA/g];
+        mockConfig.ignoreReplacements = [/MUTA/g];
         moWarden = new MutationOperatorWarden(src, mockConfiguration, mockMutationTypes);
 
         mockReplacement = 'MUTATION!';

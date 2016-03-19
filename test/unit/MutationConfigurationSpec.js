@@ -33,24 +33,24 @@ describe('MutationConfiguration', function() {
         expect(mockGlob.sync).toHaveBeenCalledWith('some/path', {dot: true});
 
         // check for the existence of the getters
-        expect(config.getBasePath()).toBe('.');
-        expect(config.getLogLevel()).toBe('INFO');
-        expect(config.getReporters().text).toEqual({dir: 'someDir', file: 'someFile'});
-        expect(config.getIgnoreReplacements()).toEqual(['"MUTATION!"']);
-        expect(config.getExcludeMutations()).toEqual([]);
-        expect(config.getMaxReportedMutationLength()).toBe(80);
-        expect(config.getMutateProductionCode()).toBeFalsy();
-        expect(config.getDiscardDefaultIgnore()).toBeFalsy();
-        expect(config.getMutate()).toEqual(['some/path', 'another/path']);
-        expect(config.getIgnore()).toEqual([/('use strict'|"use strict");/, /use struct/]);
+        expect(config.get('basePath')).toBe('.');
+        expect(config.get('logLevel')).toBe('INFO');
+        expect(config.get('reporters').text).toEqual({dir: 'someDir', file: 'someFile'});
+        expect(config.get('ignoreReplacements')).toEqual(['"MUTATION!"']);
+        expect(config.get('excludeMutations')).toEqual([]);
+        expect(config.get('maxReportedMutationLength')).toBe(80);
+        expect(config.get('mutateProductionCode')).toBeFalsy();
+        expect(config.get('discardDefaultIgnore')).toBeFalsy();
+        expect(config.get('mutate')).toEqual(['some/path', 'another/path']);
+        expect(config.get('ignore')).toEqual([/('use strict'|"use strict");/, /use struct/]);
     });
 
     it('creates defaults with minimal configuration', function() {
         var config = new MutationConfiguration({lib: 'some/lib/path', mutate: 'some/path', specs: 'some/spec/path'});
 
-        expect(config.getDiscardDefaultIgnore()).toBeFalsy();
-        expect(config.getIgnoreReplacements()).toEqual([]);
-        expect(config.getIgnore().toString()).toBe('/(\'use strict\'|"use strict");/');
+        expect(config.get('discardDefaultIgnore')).toBeFalsy();
+        expect(config.get('ignoreReplacements')).toEqual([]);
+        expect(config.get('ignore').toString()).toBe('/(\'use strict\'|"use strict");/');
     });
 
     it('does not add \'use strict\' to the defaults if discardDefaultIgnore is set', function() {
@@ -62,9 +62,9 @@ describe('MutationConfiguration', function() {
             ignore: [/use struct/]
         });
 
-        expect(config.getDiscardDefaultIgnore()).toBeTruthy();
-        expect(config.getIgnoreReplacements()).toEqual([]);
-        expect(config.getIgnore()).toEqual([/use struct/]);
+        expect(config.get('discardDefaultIgnore')).toBeTruthy();
+        expect(config.get('ignoreReplacements')).toEqual([]);
+        expect(config.get('ignore')).toEqual([/use struct/]);
     });
 
     it('logs an error if required options are not set', function() {
@@ -75,10 +75,10 @@ describe('MutationConfiguration', function() {
     it('has maintenance functions (before, after, beforeEach, etc...) that are don\'t have getters', function() {
         var config = new MutationConfiguration({lib: ['some/path'], mutate: ['some/path'], specs: ['some/spec/path'], ignore: [/use struct/]}),
             dummySpy = jasmine.createSpy('dummy');
-        config.getBefore()(dummySpy);
-        config.getBeforeEach()(dummySpy);
-        config.getAfter()(dummySpy);
-        config.getAfterEach()(dummySpy);
+        config.get('before')(dummySpy);
+        config.get('beforeEach')(dummySpy);
+        config.get('after')(dummySpy);
+        config.get('afterEach')(dummySpy);
 
         expect(dummySpy.calls.count()).toBe(4);
     });

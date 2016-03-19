@@ -32,15 +32,13 @@ var HtmlReporter = function(basePath, config) {
 
 /**
  * creates an HTML report using the given results
- * @param results
+ * @param {object} results
  * @returns {*}
  */
 HtmlReporter.prototype.create = function(results) {
     var self = this;
     return Q.Promise(function (resolve, reject) {
-        _.forEach(results, function(result){
-            IOUtils.createPathIfNotExists(IOUtils.getDirectoryList(result.fileName, true), self._basePath);
-        }, this);
+        IOUtils.createPathIfNotExists(IOUtils.getDirectoryList(results.fileName, true), self._basePath);
         new FileHtmlBuilder(self._config).createFileReports(results, self._basePath).then(function() {
             try {
                 self._createDirectoryIndexes(self._basePath);

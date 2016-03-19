@@ -28,7 +28,6 @@
         var deferred = Q.defer(),
             test = testCallback,
             self = this,
-            src,
             fileMutationResults = [];
 
         this._config.onInitComplete(deferred.resolve);
@@ -37,22 +36,21 @@
                 var config = self._config,
                     mutationPromise = new Q();
 
-                config.getBefore()();                            //run possible pre-processing
-                _.forEach(config.getMutate(), function(fileName) {
+                config.get('before')();                                                                 //run possible pre-processing
+                _.forEach(config.get('mutate'), function(fileName) {
                     mutationPromise = PromiseUtils.runSequence( [
-                        config.getBeforeEach(),                                                         // execute beforeEach
+                        config.get('beforeEach'),                                                       // execute beforeEach
                         function() {return IOUtils.promiseToReadFile(fileName);},                       // read file
                         function(source) {return mutateAndTestFile(fileName, source, test, self);},     // perform mutation testing on the file
-                        function(mutationResults) {doReporting(fileName, src, mutationResults, self);}, // do reporting
-                        config.getAfterEach(),                                                          // execute afterEach
+                        config.get('afterEach'),                                                        // execute afterEach
                         function(fileMutationResult) {fileMutationResults.push(fileMutationResult);}    // collect the results
                     ], mutationPromise, function(error) {handleError(error, fileName, self);});
                 });
                 return mutationPromise;
             })
             .finally(function() {
-            PromiseUtils.promisify(self._config.getAfter())
-                .then(function() {                                //run possible post-processing
+            PromiseUtils.promisify(self._config.get('after'))
+                .then(function() {                                                                      //run possible post-processing
                     logger.info('Mutation Test complete');
                     return fileMutationResults;
                 }
@@ -63,20 +61,6 @@
     function mutateAndTestFile(fileName, src, test, ctx) {
         var mutationFileTester = new MutationFileTester(fileName, ctx._config, ctx._mutationScoreCalculator);
         return mutationFileTester.testFile(src, test);
-    }
-
-    function doReporting(fileName, src, mutationResults, ctx) {
-        var config = ctx._config;
-        var fileMutationResult = {
-            stats: ctx._mutationScoreCalculator.getScorePerFile(fileName),
-            src: src,
-            fileName: fileName,
-            mutationResults: mutationResults
-        };
-        ReportGenerator.generate(config.getReporters(), fileMutationResult, function() {
-            logger.info('Done mutating file: %s', fileName);
-        });
-        return fileMutationResult;
     }
 
     function handleError(error, fileName, ctx) {

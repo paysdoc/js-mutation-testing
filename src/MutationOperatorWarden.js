@@ -18,9 +18,9 @@
 
     function MutationOperatorWarden(src, config, mutationOperatorTypes) {
         this._src = src;
-        this._excludedMutations = config.getExcludeMutations();
-        this._ignore = config.getIgnore();
-        this._ignoreReplacements = config.getIgnoreReplacements();
+        this._excludedMutations = config.get('excludeMutations');
+        this._ignore = config.get('ignore');
+        this._ignoreReplacements = config.get('ignoreReplacements');
         this._mutationOperatorTypes = mutationOperatorTypes;
     }
 

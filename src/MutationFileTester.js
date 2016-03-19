@@ -14,10 +14,9 @@
         MutationAnalyser = require('./MutationAnalyser'),
         JSParserWrapper = require('./JSParserWrapper'),
         PromiseUtils = require('./utils/PromiseUtils'),
+        TestRunner = require('./TestRunner'),
         IOUtils = require('./utils/IOUtils'),
-        TestStatus = require('./TestStatus'),
         Mutator = require('./Mutator'),
-        exec = require('sync-exec'),
         log4js = require('log4js'),
         _ = require('lodash'),
         Q = require('q');
@@ -58,51 +57,30 @@
             mutator.unMutate();
         }
 
+        function doReporting() {
+            var fileMutationResult = {
+                stats: mutationScoreCalculator.getScorePerFile(fileName),
+                src: src,
+                fileName: fileName,
+                mutationResults: mutationResults
+            };
+            ReportGenerator.generate(config, fileMutationResult, function() {
+                logger.info('Done mutating file: %s', fileName);
+            });
+            return fileMutationResult;
+        }
+
         mutator = new Mutator(src);
         _.forEach(mutationAnalyser.collectMutations(moWarden), function (mutationOperatorSet) {
             promise = PromiseUtils.runSequence([
-                function() {return mutateAndWriteFile(mutationOperatorSet);},                                          // apply the mutations
-                function() {return executeTest(config, test);}, // run the test
-                postProcessing                                                                                         // revert the mutation and generate mutation report
+                function() {return mutateAndWriteFile(mutationOperatorSet);},  // apply the mutations
+                function() {return TestRunner.runTest(config, test);},         // run the test
+                postProcessing                                                 // revert the mutation and generate mutation report
             ], promise, handleError);
         });
 
-        return promise.then(function() {
-            logger.trace('returning results');
-            return mutationResults;
-        });
+        return promise.then(doReporting);
     };
-
-    function executeTest(config, test) {
-        var testPromise;
-
-        if (typeof test === 'string') {
-            testPromise = PromiseUtils.promisify(function(resolver) {
-                //FIXME: this probably doesn't pick up the mutated test files
-                resolver(exec(test).status);
-            }, true);
-        } else {
-            testPromise = PromiseUtils.promisify(function(resolver) {
-                try {
-                    logger.trace('executing test with path \'%s\', code \'%s\' and specs \'%s\'', config.getBasePath(), config.getMutate(), config.getSpecs());
-                    test({
-                        basePath: config.getBasePath(),
-                        lib: config.getLib(),
-                        src: config.getMutate(),
-                        specs: config.getSpecs()
-                    }, function (status) { // TODO: what statuses do other unit test frameworks return? - this should be motre generic
-                        resolver(status ? 0 : 1);
-                    });
-                } catch(err) {
-                    resolver(1); //test killed
-                }
-
-            }, true);
-        }
-        return testPromise.then(function(returnCode) {
-            return returnCode > 0 ? TestStatus.KILLED : TestStatus.SURVIVED;
-        });
-    }
 
     function handleError(error) {
         logger.error('file processing stopped', error);

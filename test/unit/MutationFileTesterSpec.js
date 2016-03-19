@@ -7,36 +7,38 @@ describe('MutationFileTester', function() {
         PromiseUtils = require('../../src/utils/PromiseUtils'),
         mockArrayGetter = function() {return [];},
         MutationFileTester, mockIOUtils,
-        createMutationLogMessageSpy, promiseToWriteFileSpy, calculateScoreSpy, loggerSpy;
+        reportGeneratorSpy, promiseToWriteFileSpy, mutationScoreCalculatorSpy, mockTestRunner, loggerSpy;
 
     mockIOUtils = {promiseToWriteFile: function() {return PromiseUtils.promisify(promiseToWriteFileSpy);}};
     beforeEach(function() {
         loggerSpy = jasmine.createSpyObj('logger', ['trace', 'info', 'error']);
-        createMutationLogMessageSpy = jasmine.createSpy('createMutationLogMessage');
+        mutationScoreCalculatorSpy = jasmine.createSpyObj('mutationScoreCalculator', ['calculateScore', 'getScorePerFile']);
+        reportGeneratorSpy = jasmine.createSpyObj('ReportGenerator', ['createMutationLogMessage', 'generate']);
         promiseToWriteFileSpy = jasmine.createSpy('promiseToWriteFile');
-        calculateScoreSpy = jasmine.createSpy('calculateScore');
+        mockTestRunner = {runTest: function() {}};
         MutationFileTester = proxyquire('../../src/MutationFileTester', {
-            './MutationConfiguration' : function() {return {getLib: mockArrayGetter, getMutate: mockArrayGetter, getSpecs: mockArrayGetter};},
-            './MutationOperatorRegistry': {getMutationOperatorTypes: function() {}},
+            './MutationConfiguration' : function() {return {get: mockArrayGetter};},
+            './MutationOperatorRegistry': mockTestRunner,
             './MutationOperatorWarden': function() {},
-            './reporter/ReportGenerator': {createMutationLogMessage: createMutationLogMessageSpy},
+            './TestRunner': mockTestRunner,
+            './reporter/ReportGenerator': reportGeneratorSpy,
             './MutationAnalyser': function() {return {collectMutations: function() {return [['ms1'], ['ms2']];}, getIgnored: function(){}};},
             './JSParserWrapper': {stringify: function(){}},
             './utils/IOUtils': mockIOUtils,
             './Mutator': function() {return {mutate: function(param) {return param;}, unMutate: function() {}};},
             'sync-exec': function() {return {status: 0};},
             'log4js': {getLogger: function() {return loggerSpy;}}
-
         });
     });
 
     it('tests a file using a function', function(done) {
-        new MutationFileTester('some.file.name', {}, {calculateScore: calculateScoreSpy}).testFile('someSrc', function(cb) {cb(0);})
+        spyOn(mockTestRunner, 'runTest').and.returnValue('KILLED');
+        new MutationFileTester('some.file.name', {}, mutationScoreCalculatorSpy).testFile('someSrc', function(cb) {cb(0);})
             .then(function() {
-                expect(createMutationLogMessageSpy.calls.count()).toBe(2);
-                expect(calculateScoreSpy.calls.count()).toBe(2);
+                expect(reportGeneratorSpy.createMutationLogMessage.calls.count()).toBe(2);
+                expect(mutationScoreCalculatorSpy.calculateScore.calls.count()).toBe(2);
                 expect(promiseToWriteFileSpy.calls.count()).toBe(2);
-                expect(calculateScoreSpy).toHaveBeenCalledWith('some.file.name', 'KILLED', undefined);
+                expect(mutationScoreCalculatorSpy.calculateScore).toHaveBeenCalledWith('some.file.name', 'KILLED', undefined);
                 done();
             }, function(error) {
                 console.error(error);
@@ -45,13 +47,13 @@ describe('MutationFileTester', function() {
     });
 
     it('tests a file using an exec string', function(done) {
-        //var config = {getMutate: 'getMutate'};
-        new MutationFileTester('some.file.name', {}, {calculateScore: calculateScoreSpy}).testFile('someSrc', 'gulp test')
+        spyOn(mockTestRunner, 'runTest').and.returnValue('SURVIVED');
+        new MutationFileTester('some.file.name', {}, mutationScoreCalculatorSpy).testFile('someSrc', 'gulp test')
             .then(function() {
-                expect(createMutationLogMessageSpy.calls.count()).toBe(2);
-                expect(calculateScoreSpy.calls.count()).toBe(2);
+                expect(reportGeneratorSpy.createMutationLogMessage.calls.count()).toBe(2);
+                expect(mutationScoreCalculatorSpy.calculateScore.calls.count()).toBe(2);
                 expect(promiseToWriteFileSpy.calls.count()).toBe(2);
-                expect(createMutationLogMessageSpy).toHaveBeenCalledWith(jasmine.any(Object), 'some.file.name', 'ms1', 'someSrc', 'SURVIVED' );
+                expect(reportGeneratorSpy.createMutationLogMessage).toHaveBeenCalledWith(jasmine.any(Object), 'some.file.name', 'ms1', 'someSrc', 'SURVIVED' );
                 done();
             }, function(error) {
                 console.error(error);
@@ -61,7 +63,7 @@ describe('MutationFileTester', function() {
 
     it('fails on an IOUtils problem', function() {
         mockIOUtils.promiseToWriteFile = PromiseUtils.promisify(function() {throw ('cannot do that!');});
-        new MutationFileTester('some.file.name', {getMutate: 'getMutate'}, {calculateScore: calculateScoreSpy}).testFile('someSrc', 'gulp test')
+        new MutationFileTester('some.file.name', {getMutate: 'getMutate'}, mutationScoreCalculatorSpy).testFile('someSrc', 'gulp test')
             .then(function() {
                 fail('fulfillment callback should not have been called after failure');
             });

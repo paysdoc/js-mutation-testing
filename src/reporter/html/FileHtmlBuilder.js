@@ -13,15 +13,11 @@ var HtmlFormatter = require('./HtmlFormatter'),
     Templates = require('./Templates');
 
 
-var DEFAULT_CONFIG = {
-    successThreshold: 80
-};
-
 (function(module) {
     'use strict';
 
     var FileHtmlBuilder = function(config) {
-        this._config = _.merge({}, DEFAULT_CONFIG, config);
+        this._successThreshold = config.get('successThreshold') || 80;
     };
 
     /**
@@ -30,28 +26,23 @@ var DEFAULT_CONFIG = {
      * @param {string} baseDir the base directory in which to write the reports
      */
     FileHtmlBuilder.prototype.createFileReports = function(fileResults, baseDir) {
-        var promises = [];
 
-        _.forEach(fileResults, function(fileResult) {
-            promises.push(Q.Promise(function(resolve) {
-                var self = this,
-                    results = fileResult.mutationResults,
-                    formatter = new HtmlFormatter(fileResult.src);
+        return Q.Promise(function(resolve) {
+            var self = this,
+                results = fileResults.mutationResults,
+                formatter = new HtmlFormatter(fileResults.src);
 
-                formatter.formatSourceToHtml(results, function(formattedSource) {
-                    writeReport(fileResult, formatter, formattedSource.split('\n'), baseDir, self._config);
-                    resolve();
-                });
-            }));
-        }, this);
-
-        return Q.all(promises);
+            formatter.formatSourceToHtml(results, function(formattedSource) {
+                writeReport(fileResults, formatter, formattedSource.split('\n'), baseDir, self._successThreshold);
+                resolve();
+            });
+        });
     };
 
     /**
      * write the report to file
      */
-    function writeReport(fileResult, formatter, formattedSourceLines, baseDir, config) {
+    function writeReport(fileResult, formatter, formattedSourceLines, baseDir, _successThreshold) {
         var fileName = fileResult.fileName,
             stats = StatUtils.decorateStatPercentages(fileResult.stats),
             parentDir = path.normalize(baseDir + '/..'),
@@ -76,7 +67,7 @@ var DEFAULT_CONFIG = {
                 script: Templates.baseScriptTemplate({ additionalScript: Templates.fileScriptCode }),
                 fileName: path.basename(fileName),
                 stats: stats,
-                status: stats.successRate > config.successThreshold ? 'killed' : stats.all > 0 ? 'survived' : 'neutral',
+                status: stats.successRate > _successThreshold ? 'killed' : stats.all > 0 ? 'survived' : 'neutral',
                 breadcrumb: breadcrumb,
                 generatedAt: new Date().toLocaleString(),
                 content: file

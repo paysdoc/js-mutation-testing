@@ -11,6 +11,15 @@ describe('Report Generator', function() {
         proxyquire = require('proxyquire');
 
     var reportGenerator, resolve, completionTest;
+    var mockConfig = {};
+
+    function getMockConfig() {
+        return {
+            get: function(key) {
+                return mockConfig[key];
+            }
+        };
+    }
 
     beforeEach(function() {
         resolve = promiseResolver.resolve;
@@ -22,22 +31,23 @@ describe('Report Generator', function() {
     });
 
     it("Creates an HTML report", function(done) {
-        reportGenerator.generate({}, {}, done);
+        reportGenerator.generate(getMockConfig(), {}, done);
         completionTest = function() {
             expect(loggerStub.info.calls.mostRecent()).toEqual({
                 object: loggerStub,
-                args: ['Generated the mutation HTML report in: %s', 'reports/grunt-mutation-testing'],
+                args: ['Generated the mutation report in: %s', 'reports/js-mutation-testing'],
                 returnValue: undefined
             });
         };
     });
 
     it("Creates an HTML report at specified directory", function(done) {
-        reportGenerator.generate({dir: '.'}, {}, done);
+        mockConfig.reportingDir = '.';
+        reportGenerator.generate(getMockConfig(), {}, done);
         completionTest = function() {
             expect(loggerStub.info.calls.mostRecent()).toEqual({
                 object: loggerStub,
-                args: ['Generated the mutation HTML report in: %s', '.'],
+                args: ['Generated the mutation report in: %s', '.'],
                 returnValue: undefined
             });
         };
@@ -45,7 +55,7 @@ describe('Report Generator', function() {
 
     it("Creates an HTML reporter with a rejection object", function(done) {
         resolve = function() {return promiseResolver.resolve('reject', {message: 'rejected message'});};
-        reportGenerator.generate({}, {}, done);
+        reportGenerator.generate(getMockConfig(), {}, done);
         completionTest = function() {
             expect(loggerStub.error.calls.mostRecent()).toEqual({
                 object: loggerStub,
@@ -57,7 +67,7 @@ describe('Report Generator', function() {
 
     it("Creates an HTML reporter with a rejection message", function(done) {
         resolve = function() {return promiseResolver.resolve('reject', 'rejected');};
-        reportGenerator.generate({}, {}, done);
+        reportGenerator.generate(getMockConfig(), {}, done);
         completionTest = function() {
             expect(loggerStub.error.calls.mostRecent()).toEqual({
                 object:loggerStub,
@@ -68,7 +78,7 @@ describe('Report Generator', function() {
     });
 
     it('does not break if no callback is supplied', function(done) {
-        reportGenerator.generate({}, {});
+        reportGenerator.generate(getMockConfig(), {});
         completionTest = function(){};
         done();
     });

@@ -66,20 +66,16 @@
         config.specs = expandFiles(toArray(config.specs), config.basePath);
 
         this.initPathPromise = initPath(config);
-
-        //with all options set - let's make sure each option has a getter
-        logger.trace('setting up getters', config.mutate, config.specs);
-        _.forOwn(config, function(value, prop) {
-            Configuration.prototype['get' + _.capitalize(prop)] = function() {
-                return config[prop];
-            };
-        });
     }
+
+    Configuration.prototype.get = function(key) {
+        return this._config[key];
+    };
 
     Configuration.prototype.onInitComplete = function(cb) {
         var self = this;
         this.initPathPromise.done(function() {
-            logger.trace('init complete with mutation files residing in %s', self.getMutate());
+            logger.trace('init complete with mutation files residing in %s', self.get('mutate'));
             cb();
         });
     };

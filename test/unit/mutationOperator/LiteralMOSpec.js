@@ -6,11 +6,12 @@
 describe('LiteralMO', function() {
     var proxyquire = require('proxyquire'),
         LiteralUtils = require('../../../src/utils/LiteralUtils'),
+        replacementValue = {type: 'Literal', value: 'MUTATION', raw:'\'MUTATION\''},
         shouldReturnAValue,
         LiteralMO, MutationUtilsSpy, determineReplacementSpy, node, mos;
 
     function returnAValue() {
-        return shouldReturnAValue ? 'MUTATION' : null;
+        return shouldReturnAValue ? replacementValue : null;
     }
 
     beforeEach(function() {
@@ -56,9 +57,9 @@ describe('LiteralMO', function() {
 
     it('retrieves the replacement value and its coordinates', function() {
         mos = LiteralMO.create(node);
-        expect(mos[0].getReplacement()).toEqual({value: 'MUTATION', begin: 5, end: 7});
+        expect(mos[0].getReplacement()).toEqual({value: replacementValue, begin: 5, end: 7});
 
         mos[0].apply(); //should still be the same after the mutation has been applied
-        expect(mos[0].getReplacement()).toEqual({value: 'MUTATION', begin: 5, end: 7});
+        expect(mos[0].getReplacement()).toEqual({value: replacementValue, begin: 5, end: 7});
     });
 });

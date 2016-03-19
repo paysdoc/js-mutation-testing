@@ -11,19 +11,19 @@
         HtmlReporter = require('./html/HtmlReporter'),
         IOUtils = require('../utils/IOUtils'),
         TestStatus = require('../TestStatus'),
-        DEFAULT_DIR = path.join('reports', 'grunt-mutation-testing');
+        DEFAULT_DIR = path.join('reports', 'js-mutation-testing');
 
     var logger = log4js.getLogger('ReportGenerator');
 
     module.exports.generate = function(config, results, cb) {
-        var dir = config.dir || DEFAULT_DIR,
+        var dir = config.get('reportingDir') || DEFAULT_DIR,
             report = new HtmlReporter(dir, config);
 
-        logger.trace('Generating the mutation HTML report...' + JSON.stringify(results));
+        logger.trace('Generating the mutation report...' + JSON.stringify(results));
 
         report.create(results)
             .then(function() {
-                logger.info('Generated the mutation HTML report in: %s', dir);
+                logger.info('Generated the mutation report in: %s', dir);
             })
             .catch(function(error) {
                 logger.error('Error creating report: %s', error.message || error);
@@ -32,7 +32,7 @@
     };
 
     module.exports.createMutationLogMessage = function(config, srcFilePath, mutation, src, testStatus) {
-        var srcFileName = IOUtils.getRelativeFilePath(config.getBasePath(), srcFilePath),
+        var srcFileName = IOUtils.getRelativeFilePath(config.get('basePath'), srcFilePath),
             currentMutationPosition = srcFileName + ':' + mutation.line + ':' + (mutation.col + 1);
         var message = currentMutationPosition + (
                     mutation.replacement ?
@@ -49,7 +49,7 @@
     };
 
     function truncateReplacement(config, replacementArg) {
-        var maxLength = config.getMaxReportedMutationLength();
+        var maxLength = config.get('maxReportedMutationLength');
         var replacement = replacementArg.replace(/\s+/g, ' ');
         if (maxLength > 0 && replacement.length > maxLength) {
             return replacement.slice(0, maxLength / 2) + ' ... ' + replacement.slice(-maxLength / 2);

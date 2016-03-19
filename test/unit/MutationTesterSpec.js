@@ -6,15 +6,16 @@ describe('MutationTester', function() {
 
     var proxyquire = require('proxyquire'),
         dummyResolver = function(cb) {cb && cb();},
-        mockAfter = dummyResolver,
+        mockAfter = dummyResolver, // will be overridden in the tests
         mockConfiguration = {
-            getBeforeEach: function() {return dummyResolver;},
-            getBefore: function() {return dummyResolver;},
-            getAfter: function() {return mockAfter;},
-            getAfterEach: function() {return dummyResolver;},
-            onInitComplete: function(cb) {cb();},
-            getReporters: dummyResolver,
-            getMutate: function() {return ['file1', 'file2'];}
+            get: function(key) {
+                if (key === 'mutate') {
+                    return ['file1', 'file2'];
+                } else if (key === 'after') {
+                    return mockAfter;
+                } else { return dummyResolver; }
+            },
+            onInitComplete: function(cb) {cb();}
         },
         mockMutationScoreCalculator = {
             getScorePerFile: function() {return 'someScore';},
@@ -51,9 +52,6 @@ describe('MutationTester', function() {
         mutationFileTesterSpy.and.callFake(function() {return 'mutationResults';});
         mockAfter = function() {
             expect(mutationFileTesterSpy.calls.count()).toBe(1);
-            expect(loggerSpy.info.calls.count()).toBe(1);
-            expect(mockReportGenerator.generate.calls.count()).toBe(1);
-            expect(loggerSpy.info).toHaveBeenCalledWith('Done mutating file: %s', 'file2');
             expect(mutationFileTesterSpy).toHaveBeenCalledWith('some source code', jasmine.any(Function));
             done();
         };

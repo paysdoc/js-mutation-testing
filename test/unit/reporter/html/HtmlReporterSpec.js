@@ -16,10 +16,7 @@ describe('HtmlReporter', function() {
 
 
     var mocks = {
-        results: [
-            {filename: 'fileA'},
-            {filename: 'fileB'}
-        ]
+        results: {filename: 'fileA'}
     };
 
     var readDirStub = function() {return arguments[0] === '.' ?  mocks.dirContents : [];};
@@ -55,7 +52,7 @@ describe('HtmlReporter', function() {
     it('creates a file path for every given result', function(done) {
         var htmlReportPromise = new HtmlReporter('.').create(mocks.results);
         htmlReportPromise.then(function() {
-            expect(IOUtilsMock.getDirectoryList.calls.allArgs()).toEqual([[ '.', false ], [ undefined, true ], [ undefined, true ]]);
+            expect(IOUtilsMock.getDirectoryList.calls.allArgs()).toEqual([[ '.', false ], [ undefined, true ]]);
             createIndexFileCount++;
             done();
         });

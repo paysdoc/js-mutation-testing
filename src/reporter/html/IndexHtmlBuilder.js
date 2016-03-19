@@ -14,10 +14,6 @@ var IOUtils = require('../../utils/IOUtils'),
     StatUtils = require('./StatUtils'),
     Templates = require('./Templates');
 
-var DEFAULT_CONFIG = {
-    successThreshold: 80
-};
-
 /**
  * IndexHtmlBuilder constructor.
  *
@@ -27,7 +23,7 @@ var DEFAULT_CONFIG = {
  */
 var IndexHtmlBuilder = function(baseDir, config) {
     this._baseDir = baseDir;
-    this._config = _.merge({}, DEFAULT_CONFIG, config);
+    this._successThreshold = config.get('successThreshold') || 80;
     this._folderPercentages = {};
 };
 
@@ -73,7 +69,7 @@ IndexHtmlBuilder.prototype.createIndexFile = function(currentDir, files) {
         rows = rows.concat(Templates.folderFileRowTemplate({
             pathSegments: pathSegments,
             stats: fileStats,
-            status: fileStats.successRate > this._config.successThreshold ? 'killed' : fileStats.successRate > 0 ? 'survived' : 'neutral'
+            status: fileStats.successRate > this._successThreshold ? 'killed' : fileStats.successRate > 0 ? 'survived' : 'neutral'
         }));
     }, this);
 
@@ -87,7 +83,7 @@ IndexHtmlBuilder.prototype.createIndexFile = function(currentDir, files) {
             style: Templates.baseStyleTemplate({ additionalStyle: Templates.folderStyleCode }),
             fileName: path.basename(path.relative(this._baseDir, currentDir)),
             stats: allStats,
-            status: allStats.successRate > this._config.successThreshold ? 'killed' : 'survived',
+            status: allStats.successRate > this._successThreshold ? 'killed' : 'survived',
             breadcrumb: this._getBreadcrumb(currentDir),
             generatedAt: new Date().toLocaleString(),
             content: index
@@ -102,7 +98,7 @@ IndexHtmlBuilder.prototype.createIndexFile = function(currentDir, files) {
  */
 IndexHtmlBuilder.prototype.linkPathItems = function(options) {
     var folderPercentages = this._folderPercentages || {},
-        successThreshold = this._config.successThreshold,
+        successThreshold = this._successThreshold,
         fileName = path.basename(options.fileName, '.html'),
         relativeLocation = IOUtils.normalizeWindowsPath(path.relative(options.currentDir, options.fileName)),
         rawPath = options.relativePath || '.',
