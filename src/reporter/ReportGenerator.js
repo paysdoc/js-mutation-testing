@@ -49,10 +49,15 @@
     };
 
     function truncateReplacement(config, replacementArg) {
-        var maxLength = config.get('maxReportedMutationLength');
-        var replacement = replacementArg.replace(/\s+/g, ' ');
-        if (maxLength > 0 && replacement.length > maxLength) {
-            return replacement.slice(0, maxLength / 2) + ' ... ' + replacement.slice(-maxLength / 2);
+        var maxLength = config.get('maxReportedMutationLength'),
+            replacement;
+        if (typeof replacementArg === 'string') {
+            replacement = replacementArg.replace(/\s+/g, ' ');
+            if (maxLength > 0 && replacement.length > maxLength) {
+                return replacement.slice(0, maxLength / 2) + ' ... ' + replacement.slice(-maxLength / 2);
+            }
+        } else {
+            replacement = replacementArg;
         }
         return replacement;
     }
