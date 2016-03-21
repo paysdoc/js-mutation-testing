@@ -7,6 +7,18 @@ This library is still under construction. It is designed to expose and improve t
 
 [Class diagram](https://www.gliffy.com/go/publish/8133337)
 
+### Contribute
+
+There are still quite a few issues open before this project can be released. If you would like to contribute please feel
+ free to look at the issue list on [Trello](https://trello.com/b/rNDtD8NK/js-mutation-test). This list is not not exhaustive. I'm assuming that more issues will be added. Issues with no members to their name are up for grabs.
+
+If you want to take up an issue and you're not a member of the js-mutation-test team on Trello, send an email to paysdoc@gmail.com and ask to be added.
+If you are a member, add yourself to a task (please remember that to avoid duplicate work), fork the project and get creative. :)
+
+When you've completed a task / fixed a bug, create a pull request and we'll look at it and merge the code - or get back to you if we have questions or comments.
+We'll post some coding guidelines here shortly
+
+
 ### Options
 
 ##### options.mutate
