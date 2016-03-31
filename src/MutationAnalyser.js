@@ -9,10 +9,12 @@
 
     var _ = require('lodash'),
         MutationOperatorRegistry = require('./MutationOperatorRegistry'),
+        LoopInvariantInstrumenter = require('./instrumenter/LoopInvariantInstrumenter'),
         log4js = require('log4js');
 
-    function MutationAnalyser(ast) {
+    function MutationAnalyser(ast, config) {
         this._ast = ast;
+        this._config = config;
         this._mutationOperatorSets = [];
         this._ignored = [];
         this._excluded = [];
@@ -26,24 +28,26 @@
     MutationAnalyser.prototype.collectMutations = function(moWarden) {
         var mutationOperatorSets = this._mutationOperatorSets,
             ignoredMOs = this._ignored,
-            excludedMOs = this._excluded;
+            excludedMOs = this._excluded,
+            maxIterations = this._config.get('maxIterations');
 
         function analyseNode(astNode) {
             var selectedMutationOperators,
                 childNodeFinder;
 
             if (astNode) {
-
                 selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(astNode, moWarden);
                 Array.prototype.push.apply(mutationOperatorSets, selectedMutationOperators.included); //using push.apply to push array content instead of whole array (which can be empty)
                 Array.prototype.push.apply(ignoredMOs, selectedMutationOperators.ignored);
                 Array.prototype.push.apply(excludedMOs, selectedMutationOperators.excluded);
                 childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
-            }
-            if (childNodeFinder) {
-                _.forEach(childNodeFinder.find(), function (childNode) {
-                    analyseNode(childNode);
-                });
+                if (childNodeFinder) {
+                    _.forEach(childNodeFinder.find(), function (childNode) {
+                        analyseNode(childNode);
+                    });
+                }
+
+                LoopInvariantInstrumenter.doInstrumentation(astNode, maxIterations);
             }
         }
 

@@ -32,6 +32,7 @@
             excludeMutations: [],
             successThreshold: 80,
             maxReportedMutationLength: 80,
+            maxIterations: 10000,
             mutateProductionCode: false,
             discardDefaultIgnore: false
         },

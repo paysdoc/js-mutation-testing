@@ -38,7 +38,7 @@ gulp.task('e2e', function() {
         mutate: mutate,
         specs: specs,
         basePath: process.cwd() + '/test/e2e/',
-        logLevel: 'TRACE'}
+        logLevel: 'DEBUG'}
     ).test(function(config, cb) {
             var cache = require.cache || {};
             var jasmine;

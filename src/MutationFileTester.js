@@ -34,7 +34,7 @@
             fileName = this._fileName,
             moWarden = new MutationOperatorWarden(src, config, MutationOperatorRegistry.getMutationOperatorTypes()),
             ast = JSParserWrapper.parse(src),
-            mutationAnalyser = new MutationAnalyser(ast),
+            mutationAnalyser = new MutationAnalyser(ast, config),
             mutationDescriptions,
             mutationResults = [],
             mutator = new Mutator(src),
@@ -42,7 +42,7 @@
 
         function mutateAndWriteFile(mutationOperatorSet) {
             mutationDescriptions = mutator.mutate(mutationOperatorSet);
-            logger.info('writing file', fileName, '\n', JSParserWrapper.stringify(ast));
+            logger.debug('writing file', fileName, '\n', JSParserWrapper.stringify(ast));
             return IOUtils.promiseToWriteFile(fileName, JSParserWrapper.stringify(ast))
                 .then(function() {
                     return mutationDescriptions;
