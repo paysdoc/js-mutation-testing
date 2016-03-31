@@ -21,8 +21,8 @@
         var mutationInfo;
 
         if (!this._original) {
-            this._original = this._astNode.operator;
-            delete this._astNode.operator;
+            this._original = this._astNode;
+            this._astNode = this._astNode.argument;
             mutationInfo = MutationUtils.createUnaryOperatorMutation(this._astNode, this._parentMutationId, "");
         }
 
@@ -30,7 +30,7 @@
     };
 
     UnaryExpressionMO.prototype.revert = function() {
-        this._astNode.operator = this._original || this._astNode.operator;
+        this._astNode = this._original || this._astNode;
         this._original = null;
     };
 
