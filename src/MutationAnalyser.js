@@ -37,7 +37,7 @@
 
             if (astNode) {
                 selectedMutationOperators = MutationOperatorRegistry.selectMutationOperators(astNode, moWarden);
-                Array.prototype.push.apply(mutationOperatorSets, selectedMutationOperators.included); //using push.apply to push array content instead of whole array (which can be empty)
+                Array.prototype.push.apply(mutationOperatorSets, selectedMutationOperators.included); // using push.apply to push array content instead of whole array (which can be empty)
                 Array.prototype.push.apply(ignoredMOs, selectedMutationOperators.ignored);
                 Array.prototype.push.apply(excludedMOs, selectedMutationOperators.excluded);
                 childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
@@ -56,6 +56,8 @@
         }
 
         analyseNode(this._ast);
+        LoopInvariantInstrumenter.addInitialization(this._ast); //add after analyzing so that that code doesn't get mutated
+
         this._mutationOperatorSets = _.map(mutationOperatorSets, function(mutationOperator) {
             return [mutationOperator]; //add operator as single-element array as the rest of the system considers the result to be a list of mutation operator sets (actual implementation will follow)
         });

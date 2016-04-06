@@ -9,4 +9,7 @@ describe('Endless Loop', function () {
         endlessLoop.provokeEndlessLoop({input: '102365770045232'});
     });
 
+    it('tests to see whether code containing an unpredictable nested loop will always complete with instrumentation', function() {
+        endlessLoop.terribleNestedLoop();
+    });
 });

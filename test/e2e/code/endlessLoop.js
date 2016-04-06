@@ -24,4 +24,14 @@
         }
         return modulus;
     };
+
+    exports.terribleNestedLoop = function() {
+        while(i < 10) {
+            while (i) {
+                for (var i=1; i<20; i++) {
+                    i  = i % 3;
+                }
+            }
+        }
+    };
 })(exports);

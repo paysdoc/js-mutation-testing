@@ -3,33 +3,85 @@
  * don't run indefinitely if the loop invariant has been mutated
  * Created by martin on 29/03/16.
  */
-(function(module) {
+(function (module) {
     'use strict';
 
     var JSParserWrapper = require('../JSParserWrapper'),
-        MutationOperatorRegistry = require('../MutationOperatorRegistry'),
-        _ = require('lodash');
+        MutationOperatorRegistry = require('../MutationOperatorRegistry');
 
-    //TODO: should we exit with a BreakStatement or throw an exception?
-    var initialization = {                    // var tally = 0;
-            "type": "VariableDeclaration",
-            "declarations": [
-                {
-                    "type": "VariableDeclarator",
-                    "id": {
+    var tallyId = 1;
+
+    /* ***************************************
+     *            var tallies = {}
+     * ***************************************/
+    var defineTallies = {
+        "type": "VariableDeclaration",
+        "declarations": [
+            {
+                "type": "VariableDeclarator",
+                "id": {
+                    "type": "Identifier",
+                    "name": "tallies"
+                },
+                "init": {
+                    "type": "ObjectExpression",
+                    "properties": []
+                }
+            }
+        ],
+        "kind": "var"
+    };
+
+    /* ********************************************************
+     *        tallies[#id#] = tallies[#id#] || 1;
+     *        if (tallies['#id#']++ > #someVal#) { break; }
+     * ********************************************************
+     * (#id# and #someVal# are replaced later)
+     */
+    var backdoor = [
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": true,
+                    "object": {
                         "type": "Identifier",
-                        "name": "tally"
+                        "name": "tallies"
                     },
-                    "init": {
+                    "property": {
                         "type": "Literal",
-                        "value": 0,
-                        "raw": "0"
+                        "value": "#id#",
+                        "raw": "'#id#'"
+                    }
+                },
+                "right": {
+                    "type": "LogicalExpression",
+                    "operator": "||",
+                    "left": {
+                        "type": "MemberExpression",
+                        "computed": true,
+                        "object": {
+                            "type": "Identifier",
+                            "name": "tallies"
+                        },
+                        "property": {
+                            "type": "Literal",
+                            "value": "#id#",
+                            "raw": "'#id#'"
+                        }
+                    },
+                    "right": {
+                        "type": "Literal",
+                        "value": 1,
+                        "raw": "1"
                     }
                 }
-            ],
-            "kind": "var"
+            }
         },
-        backDoor = {                     // if (++tally > #someVal#) { break; } -> where #someVal# is substituted in later
+        {
             "type": "IfStatement",
             "test": {
                 "type": "BinaryExpression",
@@ -38,13 +90,24 @@
                     "type": "UpdateExpression",
                     "operator": "++",
                     "argument": {
-                        "type": "Identifier",
-                        "name": "tally"
+                        "type": "MemberExpression",
+                        "computed": true,
+                        "object": {
+                            "type": "Identifier",
+                            "name": "tallies"
+                        },
+                        "property": {
+                            "type": "Literal",
+                            "value": "#id#",
+                            "raw": "'#id#'"
+                        }
                     },
-                    "prefix": true
+                    "prefix": false
                 },
                 "right": {
-                    "type": "Literal"
+                    "type": "Literal",
+                    "value": 1000,
+                    "raw": "1000"
                 }
             },
             "consequent": {
@@ -55,37 +118,35 @@
                         "label": null
                     }
                 ]
-            }
-        };
+            },
+            "alternate": null
+        }
+    ];
 
-    function addBackDoor(astNode, maxIterations) {
-        backDoor.test.right.value = maxIterations;
-        backDoor.test.right.raw = '' + maxIterations;
-        astNode.body.body.splice(0, 0, backDoor);
+    function addBackDoor(astNode, tallyId, maxIterations) {
+        var backdoorClone = JSON.parse(JSON.stringify(backdoor)), //make a deep copy to ensure that the values are unique
+            tallyIdString = '' + tallyId;
+
+        backdoorClone[0].expression.left.property.value = tallyIdString;
+        backdoorClone[0].expression.left.property.raw = '\'' + tallyIdString + '\'';
+        backdoorClone[0].expression.right.left.property.value = tallyIdString;
+        backdoorClone[0].expression.right.left.property.raw = '\'' + tallyIdString + '\'';
+        backdoorClone[1].test.left.argument.property.value = tallyIdString;
+        backdoorClone[1].test.left.argument.property.raw = '\'' + tallyIdString + '\'';
+        backdoorClone[1].test.right.value = maxIterations;
+        backdoorClone[1].test.right.raw = '' + maxIterations;
+        Array.prototype.splice.apply(astNode.body, [0, 0].concat(backdoorClone));
     }
 
-    function addInitString(astNode) {
-        astNode.body.splice(0, 0, initialization);
-    }
-
-    function isStandardLoop(astNode) {
-        return astNode && (astNode.type === 'WhileStatement' || astNode.type === 'DoWhileStatement' || astNode.type === 'ForStatement');
-    }
     module.exports = {
-        doInstrumentation: function(astNode, maxIterations) {
-            var childNodeFinder = MutationOperatorRegistry.selectChildNodeFinder(astNode);
-            var hasLoopInNode = _.find(childNodeFinder && childNodeFinder.find(), function(node) {
-                return isStandardLoop(node);
-            });
-
-            // add initialization if the node contains one or more child nodes that are loops
-            if (hasLoopInNode) {
-                addInitString(astNode);
-            }
+        addInitialization: function (astNode) {
+            astNode.body.splice(0, 0, defineTallies);
+        },
+        doInstrumentation: function (astNode, maxIterations) {
 
             // add back door to node if it's a loop itself (assuming that the initialization was done on the parent node)
-            if (isStandardLoop(astNode)) {
-                addBackDoor(astNode, maxIterations);
+            if (astNode && (astNode.type === 'WhileStatement' || astNode.type === 'DoWhileStatement' || astNode.type === 'ForStatement')) {
+                addBackDoor(astNode.body, tallyId++, maxIterations); //pass the body of the root node as new node
             }
         }
     };
