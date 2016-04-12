@@ -9,11 +9,12 @@
     var JSParserWrapper = require('../JSParserWrapper'),
         MutationOperatorRegistry = require('../MutationOperatorRegistry');
 
+    var tallyDeclaration = '___js_mutation_test_tallies___';
     var tallyId = 1;
 
-    /* ***************************************
-     *            var tallies = {}
-     * ***************************************/
+    /* ***********************************************************
+     *            var ___js_mutation_test_tallies___ = {}
+     * ***********************************************************/
     var defineTallies = {
         "type": "VariableDeclaration",
         "declarations": [
@@ -21,7 +22,7 @@
                 "type": "VariableDeclarator",
                 "id": {
                     "type": "Identifier",
-                    "name": "tallies"
+                    "name": tallyDeclaration
                 },
                 "init": {
                     "type": "ObjectExpression",
@@ -32,10 +33,10 @@
         "kind": "var"
     };
 
-    /* ********************************************************
-     *        tallies[#id#] = tallies[#id#] || 1;
-     *        if (tallies['#id#']++ > #someVal#) { break; }
-     * ********************************************************
+    /* *********************************************************************************************
+     *        ___js_mutation_test_tallies___[#id#] = ___js_mutation_test_tallies___[#id#] || 1;
+     *        if (___js_mutation_test_tallies___['#id#']++ > #someVal#) { break; }
+     * *********************************************************************************************
      * (#id# and #someVal# are replaced later)
      */
     var backdoor = [
@@ -49,7 +50,7 @@
                     "computed": true,
                     "object": {
                         "type": "Identifier",
-                        "name": "tallies"
+                        "name": tallyDeclaration
                     },
                     "property": {
                         "type": "Literal",
@@ -65,7 +66,7 @@
                         "computed": true,
                         "object": {
                             "type": "Identifier",
-                            "name": "tallies"
+                            "name": tallyDeclaration
                         },
                         "property": {
                             "type": "Literal",
@@ -94,7 +95,7 @@
                         "computed": true,
                         "object": {
                             "type": "Identifier",
-                            "name": "tallies"
+                            "name": tallyDeclaration
                         },
                         "property": {
                             "type": "Literal",
